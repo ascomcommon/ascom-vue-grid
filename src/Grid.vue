@@ -235,5 +235,8 @@ body {
   display: block;
   position: relative;
   width: 100%;
+  @media print {
+    height: auto !important;
+  }
 }
 </style>

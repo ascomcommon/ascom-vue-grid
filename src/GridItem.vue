@@ -228,6 +228,12 @@ export default {
 
   z-index: 1;
 
+  @media print {
+    position: static;
+    transform: translate3d(0px, 0px, 0px) !important;
+    width: auto !important;
+  }
+  
   &.v-grid-item-animate {
     transition: transform 800ms ease;
   }
