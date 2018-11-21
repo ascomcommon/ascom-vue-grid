@@ -495,9 +495,9 @@
             }
         };
     }, function(module, exports, __webpack_require__) {
-        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\nbody {\n  margin: 0;\n  padding: 0;\n}\n.v-grid {\n  display: block;\n  position: relative;\n  width: 100%;\n}\n", "" ]);
+        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\nbody {\n  margin: 0;\n  padding: 0;\n}\n.v-grid {\n  display: block;\n  position: relative;\n  width: 100%;\n}\n@media print {\n.v-grid {\n      height: auto !important;\n}\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
-        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: transform 800ms ease;\n}\n", "" ]);
+        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n@media print {\n.v-grid-item-wrapper {\n      position: static;\n      transform: translate3d(0px, 0px, 0px) !important;\n      width: auto !important;\n}\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: transform 800ms ease;\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
         __webpack_require__(14);
         var Component = __webpack_require__(1)(__webpack_require__(5), __webpack_require__(12), null, null);
@@ -560,11 +560,11 @@
     }, function(module, exports, __webpack_require__) {
         var content = __webpack_require__(8);
         "string" == typeof content && (content = [ [ module.i, content, "" ] ]), content.locals && (module.exports = content.locals);
-        __webpack_require__(2)("0a97df14", content, !0);
+        __webpack_require__(2)("cee59df0", content, !0);
     }, function(module, exports, __webpack_require__) {
         var content = __webpack_require__(9);
         "string" == typeof content && (content = [ [ module.i, content, "" ] ]), content.locals && (module.exports = content.locals);
-        __webpack_require__(2)("4be927ea", content, !0);
+        __webpack_require__(2)("6d73958c", content, !0);
     }, function(module, exports) {
         module.exports = function(parentId, list) {
             for (var styles = [], newStyles = {}, i = 0; i < list.length; i++) {
