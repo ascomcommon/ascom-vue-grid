@@ -76,7 +76,7 @@ export default {
         'v-grid-item-wrapper',
         {
           'v-grid-item-animate': animate,
-          'v-grid-item-dragging': dragging
+          // 'v-grid-item-dragging': dragging
         }
       ]
     },

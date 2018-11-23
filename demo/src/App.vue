@@ -1,12 +1,5 @@
 <template>
   <div id="app">
-    <div style="padding: 10px;">
-      <a class="github-button"
-         href="https://github.com/euvl/vue-js-grid"
-         data-icon="octicon-star"
-         data-show-count="true"
-         aria-label="Star euvl/vue-js-grid on GitHub">Star</a>
-    </div>
     <div class="color-header">
       <Icon :color="selected" style="width: auto;">
         ascom-vue-grid
@@ -17,8 +10,8 @@
       :draggable="true"
       :sortable="true"
       :items="colors"
-      :height="80"
-      :width="80"
+      :cellWidth="300"
+      :cellHeight="300"
       @change="change"
       @remove="remove"
       @click="click"
@@ -30,22 +23,6 @@
               @remove="props.remove()"/>
       </template>
     </grid>
-<!--
-    <grid
-      :center="false"
-      :draggable="true"
-      :sortable="true"
-      :items="items"
-      @change="change"
-      @remove="remove"
-      @sort="sort">
-      <template slot="cell" scope="scope">
-        <Icon :index="scope.index">
-          {{scope.index}} / {{scope.sort}}
-        </Icon>
-      </template>
-    </grid>
--->
   </div>
 
 </template>
@@ -66,18 +43,6 @@ export default {
       colors,
       selected: null
     }
-  },
-
-  mounted () {
-    /*
-    setInterval(() => {
-      let item = {
-        color:  generateRGBColors(1)[0],
-        index: this.items.length
-      }
-      this.items.push(item)
-    }, 5000)
-    */
   },
 
   methods: {

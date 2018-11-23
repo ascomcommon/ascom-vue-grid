@@ -61,11 +61,14 @@ export default {
     center: {
       type: Boolean,
       default: false
-    }
+    },
   },
   data () {
     return {
-      list: []
+      list: [],
+      scrollActive: false,
+      scrollOffset: 5,
+      scrollSpeed: 10,
     }
   },
   watch: {
@@ -82,7 +85,12 @@ export default {
         })
       },
       immediate: true
-    }
+    },
+    scrollActive(val) {
+      if (val) {
+        this.startScroll();
+      }
+    },
   },
   computed: {
     height () {
@@ -158,6 +166,7 @@ export default {
     },
 
     onDragEnd (event) {
+      this.scrollActive = false;
       this.$emit('dragend', this.wrapEvent(event))
     },
 
@@ -170,7 +179,11 @@ export default {
         this.sortList(event.index, event.gridPosition)
       }
 
-      this.$emit('drag', this.wrapEvent({ event }))
+      let coef = event.distanceY / this.cellHeight;
+
+      this.scrollActive = Math.abs(coef) > 0.25;
+      this.scrollToDown = coef > 0.25;
+      this.$emit('drag', this.wrapEvent({ event }));
     },
 
     sortList (itemIndex, gridPosition) {
@@ -221,7 +234,17 @@ export default {
 
         this.$emit('sort', this.wrapEvent())
       }
-    }
+    },
+    startScroll () {
+      let offsetY = this.scrollToDown ? this.scrollOffset : -(this.scrollOffset);
+      window.scrollBy(0, offsetY);
+
+      setTimeout(() => {
+        if (this.scrollActive) {
+          this.startScroll();
+        }
+      }, this.scrollSpeed);
+    },
   }
 }
 </script>

@@ -73,9 +73,8 @@ export default {
 .icon {
   position: relative;
   background-color: transparent;
-  margin: 14px;
-  height: 52px;
-  width: 52px;
+  height: 100%;
+  width: 100%;
 
   border-radius: 10px;
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.07);
