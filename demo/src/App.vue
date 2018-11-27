@@ -5,24 +5,26 @@
         ascom-vue-grid
       </Icon>
     </div>
-    <grid
-      :center="false"
-      :draggable="true"
-      :sortable="true"
-      :items="colors"
-      :cellWidth="600"
-      :cellHeight="600"
-      @change="change"
-      @remove="remove"
-      @click="click"
-      @sort="sort">
-      <template slot="cell" scope="props">
-        <Icon :color="props.item"
-              :index="props.index"
-              :with-button="true"
-              @remove="props.remove()"/>
-      </template>
-    </grid>
+    <div class="grid-wrapper">
+      <grid
+        :center="false"
+        :draggable="true"
+        :sortable="true"
+        :items="colors"
+        :cellWidth="600"
+        :cellHeight="400"
+        @change="change"
+        @remove="remove"
+        @click="click"
+        @sort="sort">
+        <template slot="cell" scope="props">
+          <Icon :color="props.item"
+                :index="props.index"
+                :with-button="true"
+                @remove="props.remove()"/>
+        </template>
+      </grid>
+    </div>
   </div>
 
 </template>
@@ -69,8 +71,11 @@ export default {
 </script>
 
 <style lang="scss">
-body {
+html, body {
   background: #fafafa;
+  padding: 0;
+  margin: 0;
+  height: 100%;
 }
 
 #app {
@@ -78,12 +83,20 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .color-header {
   position: relative;
   padding: 10px 0;
   box-sizing: border-box;
+}
+
+.grid-wrapper {
+  overflow: hidden;
+  flex: 1;
 }
 
 </style>

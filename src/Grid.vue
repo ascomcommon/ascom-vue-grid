@@ -1,5 +1,5 @@
 <template>
-  <div class="v-grid-wrapper" ref="grid-wrapper">
+  <div class="v-grid-wrapper" :style="gridWrapperStyle" ref="grid-wrapper">
     <div class="v-grid" :style="style" ref="grid">
       <GridItem v-for="v in list"
                 :key="v.key"
@@ -74,7 +74,17 @@ export default {
       scrollStep: 10,
       scrollSpeed: 10,
       scrollOffset: 0,
+      gridWrapperHeight: null,
     }
+  },
+  created () {
+    window.addEventListener("resize", this.resizeGridHeight);
+  },
+  beforeDestroy () {
+    window.removeEventListener('resize', this.resizeGridHeight);
+  },
+  mounted () {
+    this.resizeGridHeight();
   },
   watch: {
     items: {
@@ -107,6 +117,16 @@ export default {
       return {
         height: this.height + 'px'
       }
+    },
+
+    gridWrapperStyle () {
+      if (Number.isInteger(this.gridWrapperHeight)) {
+        return {
+          height: this.gridWrapperHeight + 'px',
+        };
+      }
+
+      return null;
     },
 
     rowCount () {
@@ -276,20 +296,22 @@ export default {
         }
       }
     },
+    resizeGridHeight () {
+      if (this.$refs.hasOwnProperty('grid-wrapper')) {
+        let gridWrapper = this.$refs['grid-wrapper'];
+        let parentHeight = gridWrapper.parentElement.clientHeight;
+
+        this.gridWrapperHeight = parentHeight;
+      }
+    },
   }
 }
 </script>
 <style lang="scss">
-body {
-  margin: 0;
-  padding: 0;
-}
-
 .v-grid-wrapper {
-  max-height: 700px;
+  height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  border: 1px solid #000;
 }
 
 .v-grid {
