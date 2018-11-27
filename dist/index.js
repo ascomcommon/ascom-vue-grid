@@ -219,12 +219,37 @@
                 center: {
                     type: Boolean,
                     default: !1
+                },
+                scrollZona: {
+                    type: Number,
+                    default: .25
+                },
+                scrollStep: {
+                    type: Number,
+                    default: 10
+                },
+                scrollInterval: {
+                    type: Number,
+                    default: 10
                 }
             },
             data: function() {
                 return {
-                    list: []
+                    list: [],
+                    scrollActive: !1,
+                    scrollToDown: !0,
+                    scrollOffset: 0,
+                    gridWrapperHeight: null
                 };
+            },
+            created: function() {
+                window.addEventListener("resize", this.resizeGridHeight);
+            },
+            beforeDestroy: function() {
+                window.removeEventListener("resize", this.resizeGridHeight);
+            },
+            mounted: function() {
+                this.resizeGridHeight();
             },
             watch: {
                 items: {
@@ -240,6 +265,9 @@
                         });
                     },
                     immediate: !0
+                },
+                scrollActive: function(val) {
+                    val && this.startScroll();
                 }
             },
             computed: {
@@ -250,6 +278,11 @@
                     return {
                         height: this.height + "px"
                     };
+                },
+                gridWrapperStyle: function() {
+                    return Number.isInteger(this.gridWrapperHeight) ? {
+                        height: this.gridWrapperHeight + "px"
+                    } : null;
                 },
                 rowCount: function() {
                     return Math.floor(this.windowWidth / this.cellWidth);
@@ -294,13 +327,17 @@
                     this.$emit("dragstart", this.wrapEvent(event));
                 },
                 onDragEnd: function(event) {
-                    this.$emit("dragend", this.wrapEvent(event));
+                    this.scrollActive = !1, this.scrollOffset = 0, this.$emit("dragend", this.wrapEvent(event));
                 },
                 click: function(event) {
                     this.$emit("click", this.wrapEvent(event));
                 },
                 onDrag: function(event) {
-                    this.sortable && this.sortList(event.index, event.gridPosition), this.$emit("drag", this.wrapEvent({
+                    if (this.sortable && this.sortList(event.index, event.gridPosition), this.$refs.hasOwnProperty("grid-wrapper") && this.$refs.hasOwnProperty("grid")) {
+                        var gridWrapper = this.$refs["grid-wrapper"], pageY = event.event.pageY, wrapperPositionY = gridWrapper.offsetTop, gridHeight = gridWrapper.clientHeight, mousePosition = pageY - wrapperPositionY, coef = mousePosition / gridHeight;
+                        this.scrollActive = coef < this.scrollZona || 1 - this.scrollZona < coef, this.scrollToDown = coef > 1 - this.scrollZona;
+                    }
+                    this.$emit("drag", this.wrapEvent({
                         event: event
                     }));
                 },
@@ -320,6 +357,25 @@
                             sort: sort - 1
                         }) : item;
                     }), this.$emit("sort", this.wrapEvent()));
+                },
+                startScroll: function() {
+                    var _this = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
+                    if (this.$refs.hasOwnProperty("grid-wrapper")) {
+                        var gridWrapper = this.$refs["grid-wrapper"], lastScrollTop = gridWrapper.scrollTop;
+                        gridWrapper.scrollBy(0, offsetY);
+                        if (lastScrollTop !== gridWrapper.scrollTop) {
+                            var newScrollOffset = this.scrollOffset + offsetY;
+                            this.scrollOffset = newScrollOffset, setTimeout(function() {
+                                _this.scrollActive && _this.startScroll();
+                            }, this.scrollInterval);
+                        }
+                    }
+                },
+                resizeGridHeight: function() {
+                    if (this.$refs.hasOwnProperty("grid-wrapper")) {
+                        var gridWrapper = this.$refs["grid-wrapper"], parentHeight = gridWrapper.parentElement.clientHeight;
+                        this.gridWrapperHeight = parentHeight;
+                    }
                 }
             }
         };
@@ -356,6 +412,10 @@
                 dragDelay: {
                     type: Number,
                     default: 0
+                },
+                scrollOffset: {
+                    type: Number,
+                    default: 0
                 }
             },
             data: function() {
@@ -366,6 +426,7 @@
                     shiftStartY: 0,
                     mouseMoveStartX: 0,
                     mouseMoveStartY: 0,
+                    lastEventMouse: null,
                     shiftX: 0,
                     shiftY: 0,
                     timer: null,
@@ -378,11 +439,17 @@
                     _this.dragging || (_this.zIndex = 1);
                 }, !1);
             },
+            watch: {
+                scrollOffset: function(val) {
+                    this.dragging && this.drag(this.lastEventMouse);
+                }
+            },
             computed: {
                 className: function() {
+                    var animate = this.animate;
+                    this.dragging;
                     return [ "v-grid-item-wrapper", {
-                        "v-grid-item-animate": this.animate,
-                        "v-grid-item-dragging": this.dragging
+                        "v-grid-item-animate": animate
                     } ];
                 },
                 style: function() {
@@ -417,8 +484,10 @@
                     document.addEventListener("touchmove", this.documentMouseMove), this.$emit("dragstart", this.wrapEvent(event));
                 },
                 drag: function(event) {
-                    var e = event.touches ? event.touches[0] : event, distanceX = e.pageX - this.mouseMoveStartX, distanceY = e.pageY - this.mouseMoveStartY;
-                    this.shiftX = distanceX + this.shiftStartX, this.shiftY = distanceY + this.shiftStartY;
+                    var e = event.touches ? event.touches[0] : event;
+                    this.lastEventMouse = e;
+                    var distanceX = e.pageX - this.mouseMoveStartX, distanceY = e.pageY - this.mouseMoveStartY;
+                    this.shiftX = distanceX + this.shiftStartX, this.shiftY = distanceY + this.shiftStartY + this.scrollOffset;
                     var gridX = Math.round(this.shiftX / this.cellWidth), gridY = Math.round(this.shiftY / this.cellHeight);
                     gridX = Math.min(gridX, this.rowCount - 1), gridY = Math.max(gridY, 0);
                     var gridPosition = gridX + gridY * this.rowCount, $event = {
@@ -495,9 +564,9 @@
             }
         };
     }, function(module, exports, __webpack_require__) {
-        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\nbody {\n  margin: 0;\n  padding: 0;\n}\n.v-grid {\n  display: block;\n  position: relative;\n  width: 100%;\n}\n", "" ]);
+        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-wrapper {\n  height: 100%;\n  overflow-x: hidden;\n  overflow-y: auto;\n}\n.v-grid {\n  display: block;\n  position: relative;\n  width: 100%;\n}\n@media print {\n.v-grid {\n      height: auto !important;\n}\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
-        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: transform 800ms ease;\n}\n", "" ]);
+        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n@media print {\n.v-grid-item-wrapper {\n      position: static;\n      transform: translate3d(0px, 0px, 0px) !important;\n      width: auto !important;\n}\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: transform 800ms ease;\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
         __webpack_require__(14);
         var Component = __webpack_require__(1)(__webpack_require__(5), __webpack_require__(12), null, null);
@@ -507,6 +576,11 @@
             render: function() {
                 var _vm = this, _h = _vm.$createElement, _c = _vm._self._c || _h;
                 return _c("div", {
+                    ref: "grid-wrapper",
+                    staticClass: "v-grid-wrapper",
+                    style: _vm.gridWrapperStyle
+                }, [ _c("div", {
+                    ref: "grid",
                     staticClass: "v-grid",
                     style: _vm.style
                 }, _vm._l(_vm.list, function(v) {
@@ -521,7 +595,8 @@
                             "cell-width": _vm.cellWidth,
                             "cell-height": _vm.cellHeight,
                             "window-width": _vm.windowWidth,
-                            "row-shift": _vm.rowShift
+                            "row-shift": _vm.rowShift,
+                            "scroll-offset": _vm.scrollOffset
                         },
                         on: {
                             dragstart: _vm.onDragStart,
@@ -537,7 +612,7 @@
                             _vm.removeItem(v);
                         }
                     }) ], 2);
-                }));
+                })) ]);
             },
             staticRenderFns: []
         };
@@ -560,11 +635,11 @@
     }, function(module, exports, __webpack_require__) {
         var content = __webpack_require__(8);
         "string" == typeof content && (content = [ [ module.i, content, "" ] ]), content.locals && (module.exports = content.locals);
-        __webpack_require__(2)("0a97df14", content, !0);
+        __webpack_require__(2)("cee59df0", content, !0);
     }, function(module, exports, __webpack_require__) {
         var content = __webpack_require__(9);
         "string" == typeof content && (content = [ [ module.i, content, "" ] ]), content.locals && (module.exports = content.locals);
-        __webpack_require__(2)("4be927ea", content, !0);
+        __webpack_require__(2)("6d73958c", content, !0);
     }, function(module, exports) {
         module.exports = function(parentId, list) {
             for (var styles = [], newStyles = {}, i = 0; i < list.length; i++) {
