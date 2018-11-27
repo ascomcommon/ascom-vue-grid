@@ -58,12 +58,24 @@ export default {
       default: 0
     },
     sortable: {
-       type: Boolean,
-       default: false
+      type: Boolean,
+      default: false
     },
     center: {
       type: Boolean,
       default: false
+    },
+    scrollZona: {
+      type: Number,
+      default: 0.25,
+    },
+    scrollStep: {
+      type: Number,
+      default: 10,
+    },
+    scrollInterval: {
+      type: Number,
+      default: 10,
     },
   },
   data () {
@@ -71,8 +83,6 @@ export default {
       list: [],
       scrollActive: false,
       scrollToDown: true,
-      scrollStep: 10,
-      scrollSpeed: 10,
       scrollOffset: 0,
       gridWrapperHeight: null,
     }
@@ -216,8 +226,8 @@ export default {
 
         let coef = mousePosition / gridHeight;
 
-        this.scrollActive = coef < 0.25 || 0.75 < coef;
-        this.scrollToDown = coef > 0.75;
+        this.scrollActive = coef < this.scrollZona || (1 - this.scrollZona) < coef;
+        this.scrollToDown = coef > (1 - this.scrollZona);
       }
       
       this.$emit('drag', this.wrapEvent({ event }));
@@ -292,7 +302,7 @@ export default {
             if (this.scrollActive) {
               this.startScroll();
             }
-          }, this.scrollSpeed);
+          }, this.scrollInterval);
         }
       }
     },
