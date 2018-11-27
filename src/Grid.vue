@@ -1,26 +1,28 @@
 <template>
-  <div class="v-grid" :style="style">
-    <GridItem v-for="v in list"
-              :key="v.key"
+  <div class="v-grid-wrapper" ref="grid-wrapper">
+    <div class="v-grid" :style="style" ref="grid">
+      <GridItem v-for="v in list"
+                :key="v.key"
+                :index="v.index"
+                :sort="v.sort"
+                :draggable="draggable"
+                :drag-delay="dragDelay"
+                :row-count="rowCount"
+                :cell-width="cellWidth"
+                :cell-height="cellHeight"
+                :window-width="windowWidth"
+                :row-shift="rowShift"
+                @dragstart="onDragStart"
+                @dragend="onDragEnd"
+                @drag="onDrag"
+                @click="click">
+        <slot name="cell"
+              :item="v.item"
               :index="v.index"
               :sort="v.sort"
-              :draggable="draggable"
-              :drag-delay="dragDelay"
-              :row-count="rowCount"
-              :cell-width="cellWidth"
-              :cell-height="cellHeight"
-              :window-width="windowWidth"
-              :row-shift="rowShift"
-              @dragstart="onDragStart"
-              @dragend="onDragEnd"
-              @drag="onDrag"
-              @click="click">
-      <slot name="cell"
-            :item="v.item"
-            :index="v.index"
-            :sort="v.sort"
-            :remove="() => { removeItem(v) }"/>
-    </GridItem>
+              :remove="() => { removeItem(v) }"/>
+      </GridItem>
+    </div>
   </div>
 </template>
 <script>
@@ -67,6 +69,7 @@ export default {
     return {
       list: [],
       scrollActive: false,
+      scrollToDown: true,
       scrollOffset: 5,
       scrollSpeed: 10,
     }
@@ -179,10 +182,21 @@ export default {
         this.sortList(event.index, event.gridPosition)
       }
 
-      let coef = event.distanceY / this.cellHeight;
+      if (this.$refs.hasOwnProperty('grid-wrapper') && this.$refs.hasOwnProperty('grid')) {
+        let gridWrapper = this.$refs['grid-wrapper'];
 
-      this.scrollActive = Math.abs(coef) > 0.25;
-      this.scrollToDown = coef > 0.25;
+        let { pageY } = event.event;
+        let wrapperPositionY = gridWrapper.offsetTop;
+        let gridHeight = gridWrapper.clientHeight;
+
+        let mousePosition = pageY - wrapperPositionY;
+
+        let coef = mousePosition / gridHeight;
+
+        this.scrollActive = coef < 0.25 || 0.75 < coef;
+        this.scrollToDown = coef > 0.75;
+      }
+      
       this.$emit('drag', this.wrapEvent({ event }));
     },
 
@@ -237,13 +251,16 @@ export default {
     },
     startScroll () {
       let offsetY = this.scrollToDown ? this.scrollOffset : -(this.scrollOffset);
-      window.scrollBy(0, offsetY);
 
-      setTimeout(() => {
-        if (this.scrollActive) {
-          this.startScroll();
-        }
-      }, this.scrollSpeed);
+      if (this.$refs.hasOwnProperty('grid-wrapper')) {
+        this.$refs['grid-wrapper'].scrollBy(0, offsetY);
+
+        setTimeout(() => {
+          if (this.scrollActive) {
+            this.startScroll();
+          }
+        }, this.scrollSpeed);
+      }
     },
   }
 }
@@ -252,6 +269,13 @@ export default {
 body {
   margin: 0;
   padding: 0;
+}
+
+.v-grid-wrapper {
+  max-height: 700px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid #000;
 }
 
 .v-grid {
