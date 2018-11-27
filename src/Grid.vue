@@ -12,6 +12,7 @@
                 :cell-height="cellHeight"
                 :window-width="windowWidth"
                 :row-shift="rowShift"
+                :scroll-offset="scrollOffset"
                 @dragstart="onDragStart"
                 @dragend="onDragEnd"
                 @drag="onDrag"
@@ -70,8 +71,9 @@ export default {
       list: [],
       scrollActive: false,
       scrollToDown: true,
-      scrollOffset: 5,
+      scrollStep: 10,
       scrollSpeed: 10,
+      scrollOffset: 0,
     }
   },
   watch: {
@@ -170,6 +172,7 @@ export default {
 
     onDragEnd (event) {
       this.scrollActive = false;
+      this.scrollOffset = 0;
       this.$emit('dragend', this.wrapEvent(event))
     },
 
@@ -250,16 +253,27 @@ export default {
       }
     },
     startScroll () {
-      let offsetY = this.scrollToDown ? this.scrollOffset : -(this.scrollOffset);
+      let offsetY = this.scrollToDown ? this.scrollStep : -(this.scrollStep);
 
       if (this.$refs.hasOwnProperty('grid-wrapper')) {
-        this.$refs['grid-wrapper'].scrollBy(0, offsetY);
+        let gridWrapper = this.$refs['grid-wrapper'];
 
-        setTimeout(() => {
-          if (this.scrollActive) {
-            this.startScroll();
-          }
-        }, this.scrollSpeed);
+        let lastScrollTop = gridWrapper.scrollTop;
+        gridWrapper.scrollBy(0, offsetY);
+        let currentScroll = gridWrapper.scrollTop;
+
+        let scrollIsChanged = lastScrollTop !== currentScroll;
+
+        if (scrollIsChanged) {
+          let newScrollOffset = this.scrollOffset + offsetY;
+          this.scrollOffset = newScrollOffset;
+
+          setTimeout(() => {
+            if (this.scrollActive) {
+              this.startScroll();
+            }
+          }, this.scrollSpeed);
+        }
       }
     },
   }

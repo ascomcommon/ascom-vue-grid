@@ -10,8 +10,8 @@
       :draggable="true"
       :sortable="true"
       :items="colors"
-      :cellWidth="200"
-      :cellHeight="200"
+      :cellWidth="600"
+      :cellHeight="600"
       @change="change"
       @remove="remove"
       @click="click"
@@ -37,7 +37,7 @@ export default {
     Icon
   },
   data () {
-    let colors = generateRGBColors(60);
+    let colors = generateRGBColors(20);
 
     return {
       colors,
