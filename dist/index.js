@@ -239,7 +239,8 @@
                     scrollActive: !1,
                     scrollToDown: !0,
                     scrollOffset: 0,
-                    gridWrapperHeight: null
+                    gridWrapperHeight: null,
+                    currentScroll: 0
                 };
             },
             created: function() {
@@ -361,9 +362,10 @@
                 startScroll: function() {
                     var _this = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
                     if (this.$refs.hasOwnProperty("grid-wrapper")) {
-                        var gridWrapper = this.$refs["grid-wrapper"], lastScrollTop = gridWrapper.scrollTop;
+                        var gridWrapper = this.$refs["grid-wrapper"], gridWrapperHeight = gridWrapper.offsetHeight, gridHeight = this.$refs.grid.offsetHeight, lastScrollTop = gridWrapper.scrollTop;
                         gridWrapper.scrollBy(0, offsetY);
-                        if (lastScrollTop !== gridWrapper.scrollTop) {
+                        var currentScroll = gridWrapper.scrollTop, scrollToUp = lastScrollTop > currentScroll, scrollToDown = lastScrollTop < currentScroll && currentScroll + gridWrapperHeight < gridHeight;
+                        if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
                             var newScrollOffset = this.scrollOffset + offsetY;
                             this.scrollOffset = newScrollOffset, setTimeout(function() {
                                 _this.scrollActive && _this.startScroll();
