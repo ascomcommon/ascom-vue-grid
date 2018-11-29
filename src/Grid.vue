@@ -85,6 +85,7 @@ export default {
       scrollToDown: true,
       scrollOffset: 0,
       gridWrapperHeight: null,
+      currentScroll: 0,
     }
   },
   created () {
@@ -287,14 +288,18 @@ export default {
 
       if (this.$refs.hasOwnProperty('grid-wrapper')) {
         let gridWrapper = this.$refs['grid-wrapper'];
+        let gridWrapperHeight = gridWrapper.offsetHeight;
+
+        let gridHeight = this.$refs['grid'].offsetHeight;
 
         let lastScrollTop = gridWrapper.scrollTop;
         gridWrapper.scrollBy(0, offsetY);
         let currentScroll = gridWrapper.scrollTop;
 
-        let scrollIsChanged = lastScrollTop !== currentScroll;
+        let scrollToUp = lastScrollTop > currentScroll;
+        let scrollToDown = lastScrollTop < currentScroll && (currentScroll + gridWrapperHeight) < gridHeight;
 
-        if (scrollIsChanged) {
+        if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
           let newScrollOffset = this.scrollOffset + offsetY;
           this.scrollOffset = newScrollOffset;
 
