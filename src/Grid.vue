@@ -338,6 +338,9 @@ export default {
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
+  @media print {
+    height: auto !important;
+  }
 }
 
 .v-grid {
