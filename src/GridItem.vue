@@ -61,12 +61,12 @@ export default {
     }
   },
   mounted () {
-    this.$refs.self
-      .addEventListener('transitionend', (event) => {
+    this.$refs.self.addEventListener('transitionend', (event) => {
         if (!this.dragging) {
-          this.zIndex = 1
+          this.zIndex = 1;
+          this.$emit('transitionend');
         }
-      }, false)
+      });
   },
   computed: {
     className () {
