@@ -11,7 +11,8 @@
               :cell-height="cellHeight"
               :window-width="windowWidth"
               :row-shift="rowShift"
-              @dragstart="onDragStart"
+              @transitionend="() => onTransitionEnd(v.key)"
+              @dragstart="(event) => onDragStart(event, v.key)"
               @dragend="onDragEnd"
               @drag="onDrag"
               @click="click">
@@ -65,7 +66,8 @@ export default {
   },
   data () {
     return {
-      list: []
+      list: [],
+      elementIdInMotion: null,
     }
   },
   watch: {
@@ -153,12 +155,20 @@ export default {
       this.$emit('remove', this.wrapEvent({ index }))
     },
 
-    onDragStart (event) {
-      this.$emit('dragstart', this.wrapEvent(event))
+    onDragStart (event, id) {
+      this.elementIdInMotion = id;
+
+      this.$emit('dragstart', this.wrapEvent(event));
     },
 
     onDragEnd (event) {
-      this.$emit('dragend', this.wrapEvent(event))
+      this.$emit('dragend', this.wrapEvent(event));
+    },
+
+    onTransitionEnd (id) {
+      if (this.elementIdInMotion === id) {
+        this.$emit('alltransitionend');
+      }
     },
 
     click (event) {
