@@ -11,11 +11,12 @@
         :draggable="true"
         :sortable="true"
         :items="colors"
-        :cellWidth="600"
-        :cellHeight="400"
+        :cellWidth="300"
+        :cellHeight="200"
         :scroll-zona="0.3"
         :scroll-step="10"
         :scroll-interval="10"
+        @alltransitionend="onTransitionEnd"
         @change="change"
         @remove="remove"
         @click="click"
@@ -56,6 +57,10 @@ export default {
       this.selected = value.item
 
       console.log(this.selected)
+    },
+
+    onTransitionEnd () {
+      console.log('onTransitionEnd');
     },
 
     change (event) {

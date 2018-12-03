@@ -63,16 +63,16 @@ export default {
 
       timer: null,
 
-      zIndex: 1
+      zIndex: 1,
     }
   },
   mounted () {
-    this.$refs.self
-      .addEventListener('transitionend', (event) => {
-        if (!this.dragging) {
-          this.zIndex = 1
-        }
-      }, false)
+    this.$refs.self.addEventListener('transitionend', (event) => {
+      if (!this.dragging) {
+        this.zIndex = 1
+        this.$emit('transitionend');
+      }
+    });
   },
   watch: {
     scrollOffset(val) {
@@ -222,7 +222,7 @@ export default {
         this.$emit('click', $event)
       }
 
-      this.$emit('dragend', $event)
+      this.$emit('dragend', $event);
     }
   }
 }

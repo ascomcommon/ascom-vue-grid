@@ -240,7 +240,8 @@
                     scrollToDown: !0,
                     scrollOffset: 0,
                     gridWrapperHeight: null,
-                    currentScroll: 0
+                    currentScroll: 0,
+                    elementIdInMotion: null
                 };
             },
             created: function() {
@@ -324,11 +325,14 @@
                         index: index
                     }));
                 },
-                onDragStart: function(event) {
-                    this.$emit("dragstart", this.wrapEvent(event));
+                onDragStart: function(event, id) {
+                    this.elementIdInMotion = id, this.$emit("dragstart", this.wrapEvent(event));
                 },
                 onDragEnd: function(event) {
                     this.scrollActive = !1, this.scrollOffset = 0, this.$emit("dragend", this.wrapEvent(event));
+                },
+                onTransitionEnd: function(id) {
+                    this.elementIdInMotion === id && this.$emit("alltransitionend");
                 },
                 click: function(event) {
                     this.$emit("click", this.wrapEvent(event));
@@ -438,8 +442,8 @@
             mounted: function() {
                 var _this = this;
                 this.$refs.self.addEventListener("transitionend", function(event) {
-                    _this.dragging || (_this.zIndex = 1);
-                }, !1);
+                    _this.dragging || (_this.zIndex = 1, _this.$emit("transitionend"));
+                });
             },
             watch: {
                 scrollOffset: function(val) {
@@ -601,7 +605,12 @@
                             "scroll-offset": _vm.scrollOffset
                         },
                         on: {
-                            dragstart: _vm.onDragStart,
+                            transitionend: function() {
+                                return _vm.onTransitionEnd(v.key);
+                            },
+                            dragstart: function(event) {
+                                return _vm.onDragStart(event, v.key);
+                            },
                             dragend: _vm.onDragEnd,
                             drag: _vm.onDrag,
                             click: _vm.click
