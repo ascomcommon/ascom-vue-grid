@@ -1,7 +1,7 @@
 {
   "name": "ascom-vue-grid",
   "description": "Vue.js responsive grid plugin",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "ascomcommon <common.ascom@gmail.com>",
   "private": false,
   "scripts": {
