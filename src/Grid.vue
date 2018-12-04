@@ -78,6 +78,9 @@ export default {
       type: Number,
       default: 10,
     },
+    refScrollElement: {
+      
+    },
   },
   data () {
     return {
@@ -97,9 +100,20 @@ export default {
     window.removeEventListener('resize', this.resizeGridHeight);
   },
   mounted () {
+    this.scrollElement = this.$refs['grid-wrapper'];
+    this.scrollElement.style['overflow-y'] = "auto";
+    
     this.resizeGridHeight();
   },
   watch: {
+    refScrollElement (val) {
+      if (val) {
+        this.scrollElement = val;
+      } else {
+        this.scrollElement = this.$refs['grid-wrapper'];
+        this.scrollElement.style['overflow-y'] = "auto";
+      }
+    },
     items: {
       handler: function (nextItems = []) {
         this.list = nextItems.map((item, index) => {
@@ -227,21 +241,18 @@ export default {
         this.sortList(event.index, event.gridPosition)
       }
 
-      if (this.$refs.hasOwnProperty('grid-wrapper') && this.$refs.hasOwnProperty('grid')) {
-        let gridWrapper = this.$refs['grid-wrapper'];
-
-        let { pageY } = event.event;
-        let wrapperPositionY = gridWrapper.offsetTop;
-        let gridHeight = gridWrapper.clientHeight;
-
-        let mousePosition = pageY - wrapperPositionY;
-
-        let coef = mousePosition / gridHeight;
-
-        this.scrollActive = coef < this.scrollZona || (1 - this.scrollZona) < coef;
-        this.scrollToDown = coef > (1 - this.scrollZona);
+      if (!this.scrollElement) {
+        return false;
       }
-      
+
+      let { pageY } = event.event;
+
+      let mousePosition = pageY - this.scrollElement.offsetTop;
+      let coef = mousePosition / this.scrollElement.clientHeight;
+
+      this.scrollActive = coef < this.scrollZona || (1 - this.scrollZona) < coef;
+      this.scrollToDown = coef > (1 - this.scrollZona);
+    
       this.$emit('drag', this.wrapEvent({ event }));
     },
 
@@ -297,18 +308,16 @@ export default {
     startScroll () {
       let offsetY = this.scrollToDown ? this.scrollStep : -(this.scrollStep);
 
-      if (this.$refs.hasOwnProperty('grid-wrapper')) {
-        let gridWrapper = this.$refs['grid-wrapper'];
-        let gridWrapperHeight = gridWrapper.offsetHeight;
+      if (this.scrollElement) {
+        let lastScrollTop = this.scrollElement.scrollTop;
+        this.scrollElement.scrollBy(0, offsetY);
+        let currentScroll = this.scrollElement.scrollTop;
 
-        let gridHeight = this.$refs['grid'].offsetHeight;
-
-        let lastScrollTop = gridWrapper.scrollTop;
-        gridWrapper.scrollBy(0, offsetY);
-        let currentScroll = gridWrapper.scrollTop;
-
+        let scrollElementHeight = this.scrollElement.offsetHeight;
+        let childHeight = this.scrollElement.firstChild.offsetHeight;
+        
         let scrollToUp = lastScrollTop > currentScroll;
-        let scrollToDown = lastScrollTop < currentScroll && (currentScroll + gridWrapperHeight) < gridHeight;
+        let scrollToDown = lastScrollTop < currentScroll && (currentScroll + scrollElementHeight) < childHeight;
 
         if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
           let newScrollOffset = this.scrollOffset + offsetY;

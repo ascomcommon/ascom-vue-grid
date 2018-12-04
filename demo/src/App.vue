@@ -5,7 +5,17 @@
         ascom-vue-grid
       </Icon>
     </div>
-    <div class="grid-wrapper">
+
+    <div ref="scrollElement" class="scroll-element">
+      <div class="scroll-element-child">
+        <div class="expand-item">
+          <Icon
+            :color="expandColor"
+            :with-button="true"
+          />
+        </div>
+
+        <div class="grid">
       <grid
         :center="false"
         :draggable="true"
@@ -16,21 +26,26 @@
         :scroll-zona="0.3"
         :scroll-step="10"
         :scroll-interval="10"
+            :ref-scroll-element="scrollElement"
         @alltransitionend="onTransitionEnd"
         @change="change"
         @remove="remove"
         @click="click"
-        @sort="sort">
+            @sort="sort"
+          >
         <template slot="cell" scope="props">
-          <Icon :color="props.item"
+              <Icon
+                :color="props.item"
                 :index="props.index"
                 :with-button="true"
-                @remove="props.remove()"/>
+                @remove="props.remove()"
+              />
         </template>
       </grid>
     </div>
   </div>
-
+    </div>
+  </div>
 </template>
 
 <script>
@@ -48,6 +63,8 @@ export default {
     return {
       colors,
       selected: null,
+      expandColor: { r: 200, g: 50, b: 50 },
+      scrollElement: null,
     };
   },
 
@@ -55,8 +72,6 @@ export default {
     click ({ items, index }) {
       let value = items.find(v => v.index === index)
       this.selected = value.item
-
-      console.log(this.selected)
     },
 
     onTransitionEnd () {
@@ -94,6 +109,7 @@ html, body {
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
 }
 
 .color-header {
@@ -102,7 +118,20 @@ html, body {
   box-sizing: border-box;
 }
 
-.grid-wrapper {
+.expand-item {
+  width: 100%;
+  height: 300px;
+}
+
+.scroll-element {
+  overflow: auto;
+}
+
+.scroll-element-child {
+  padding: 10px;
+}
+
+.grid {
   overflow: hidden;
   flex: 1;
 }
