@@ -231,7 +231,8 @@
                 scrollInterval: {
                     type: Number,
                     default: 10
-                }
+                },
+                refScrollElement: {}
             },
             data: function() {
                 return {
@@ -251,9 +252,14 @@
                 window.removeEventListener("resize", this.resizeGridHeight);
             },
             mounted: function() {
+                this.scrollElement = this.$refs["grid-wrapper"], this.scrollElement.style["overflow-y"] = "auto", 
                 this.resizeGridHeight();
             },
             watch: {
+                refScrollElement: function(val) {
+                    val ? (this.scrollElement = val, this.$refs["grid-wrapper"].style["overflow-y"] = "hidden") : (this.scrollElement = this.$refs["grid-wrapper"], 
+                    this.scrollElement.style["overflow-y"] = "auto");
+                },
                 items: {
                     handler: function() {
                         var nextItems = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
@@ -338,10 +344,9 @@
                     this.$emit("click", this.wrapEvent(event));
                 },
                 onDrag: function(event) {
-                    if (this.sortable && this.sortList(event.index, event.gridPosition), this.$refs.hasOwnProperty("grid-wrapper") && this.$refs.hasOwnProperty("grid")) {
-                        var gridWrapper = this.$refs["grid-wrapper"], pageY = event.event.pageY, wrapperPositionY = gridWrapper.offsetTop, gridHeight = gridWrapper.clientHeight, mousePosition = pageY - wrapperPositionY, coef = mousePosition / gridHeight;
-                        this.scrollActive = coef < this.scrollZona || 1 - this.scrollZona < coef, this.scrollToDown = coef > 1 - this.scrollZona;
-                    }
+                    if (this.sortable && this.sortList(event.index, event.gridPosition), !this.scrollElement) return !1;
+                    var pageY = event.event.pageY, mousePosition = pageY - this.scrollElement.offsetTop, coef = mousePosition / this.scrollElement.clientHeight;
+                    this.scrollActive = coef < this.scrollZona || 1 - this.scrollZona < coef, this.scrollToDown = coef > 1 - this.scrollZona, 
                     this.$emit("drag", this.wrapEvent({
                         event: event
                     }));
@@ -365,10 +370,10 @@
                 },
                 startScroll: function() {
                     var _this = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
-                    if (this.$refs.hasOwnProperty("grid-wrapper")) {
-                        var gridWrapper = this.$refs["grid-wrapper"], gridWrapperHeight = gridWrapper.offsetHeight, gridHeight = this.$refs.grid.offsetHeight, lastScrollTop = gridWrapper.scrollTop;
-                        gridWrapper.scrollBy(0, offsetY);
-                        var currentScroll = gridWrapper.scrollTop, scrollToUp = lastScrollTop > currentScroll, scrollToDown = lastScrollTop < currentScroll && currentScroll + gridWrapperHeight < gridHeight;
+                    if (this.scrollElement) {
+                        var lastScrollTop = this.scrollElement.scrollTop;
+                        this.scrollElement.scrollBy(0, offsetY);
+                        var currentScroll = this.scrollElement.scrollTop, scrollElementHeight = this.scrollElement.offsetHeight, childHeight = this.scrollElement.firstChild.offsetHeight, scrollToUp = lastScrollTop > currentScroll, scrollToDown = lastScrollTop < currentScroll && currentScroll + scrollElementHeight < childHeight;
                         if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
                             var newScrollOffset = this.scrollOffset + offsetY;
                             this.scrollOffset = newScrollOffset, setTimeout(function() {

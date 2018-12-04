@@ -26,7 +26,7 @@
         :scroll-zona="0.3"
         :scroll-step="10"
         :scroll-interval="10"
-            :ref-scroll-element="scrollElement"
+        :ref-scroll-element="scrollElement"
         @alltransitionend="onTransitionEnd"
         @change="change"
         @remove="remove"
@@ -66,6 +66,10 @@ export default {
       expandColor: { r: 200, g: 50, b: 50 },
       scrollElement: null,
     };
+  },
+
+  mounted () {
+    this.scrollElement = this.$refs.scrollElement;
   },
 
   methods: {
@@ -125,10 +129,10 @@ html, body {
 
 .scroll-element {
   overflow: auto;
+  padding: 40px;
 }
 
 .scroll-element-child {
-  padding: 10px;
 }
 
 .grid {
