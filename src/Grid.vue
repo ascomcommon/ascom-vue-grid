@@ -1,27 +1,30 @@
 <template>
-  <div class="v-grid" :style="style">
-    <GridItem v-for="v in list"
-              :key="v.key"
+  <div class="v-grid-wrapper" :style="gridWrapperStyle" ref="grid-wrapper">
+    <div class="v-grid" :style="style" ref="grid">
+      <GridItem v-for="v in list"
+                :key="v.key"
+                :index="v.index"
+                :sort="v.sort"
+                :draggable="draggable"
+                :drag-delay="dragDelay"
+                :row-count="rowCount"
+                :cell-width="cellWidth"
+                :cell-height="cellHeight"
+                :window-width="windowWidth"
+                :row-shift="rowShift"
+                :scroll-offset="scrollOffset"
+                @transitionend="() => onTransitionEnd(v.key)"
+                @dragstart="(event) => onDragStart(event, v.key)"
+                @dragend="onDragEnd"
+                @drag="onDrag"
+                @click="click">
+        <slot name="cell"
+              :item="v.item"
               :index="v.index"
               :sort="v.sort"
-              :draggable="draggable"
-              :drag-delay="dragDelay"
-              :row-count="rowCount"
-              :cell-width="cellWidth"
-              :cell-height="cellHeight"
-              :window-width="windowWidth"
-              :row-shift="rowShift"
-              @transitionend="() => onTransitionEnd(v.key)"
-              @dragstart="(event) => onDragStart(event, v.key)"
-              @dragend="onDragEnd"
-              @drag="onDrag"
-              @click="click">
-      <slot name="cell"
-            :item="v.item"
-            :index="v.index"
-            :sort="v.sort"
-            :remove="() => { removeItem(v) }"/>
-    </GridItem>
+              :remove="() => { removeItem(v) }"/>
+      </GridItem>
+    </div>
   </div>
 </template>
 <script>
@@ -56,21 +59,71 @@ export default {
       default: 0
     },
     sortable: {
-       type: Boolean,
-       default: false
+      type: Boolean,
+      default: false
     },
     center: {
       type: Boolean,
       default: false
-    }
+    },
+    scrollZona: {
+      type: Number,
+      default: 0.25,
+    },
+    scrollStep: {
+      type: Number,
+      default: 10,
+    },
+    scrollInterval: {
+      type: Number,
+      default: 10,
+    },
+    refScrollElement: {
+      
+    },
+    wrapperStyles: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   data () {
     return {
       list: [],
+      scrollActive: false,
+      scrollToDown: true,
+      scrollOffset: 0,
+      gridWrapperHeight: null,
+      currentScroll: 0,
       elementIdInMotion: null,
     }
   },
+  created () {
+    window.addEventListener("resize", this.resizeGridHeight);
+  },
+  beforeDestroy () {
+    window.removeEventListener('resize', this.resizeGridHeight);
+  },
+  mounted () {
+    if (this.refScrollElement) {
+      this.scrollElement = this.refScrollElement;
+      this.$refs['grid-wrapper'].style['overflow'] = "visible";
+    } else {
+      this.scrollElement = this.$refs['grid-wrapper'];
+      this.scrollElement.style['overflow-y'] = "auto";
+    }
+
+    this.resizeGridHeight();
+  },
   watch: {
+    refScrollElement (val) {
+      if (val) {
+        this.scrollElement = val;
+        this.$refs['grid-wrapper'].style['overflow'] = "visible";
+      } else {
+        this.scrollElement = this.$refs['grid-wrapper'];
+        this.scrollElement.style['overflow-y'] = "auto";
+      }
+    },
     items: {
       handler: function (nextItems = []) {
         this.list = nextItems.map((item, index) => {
@@ -80,22 +133,41 @@ export default {
             index,
             key,
             sort: index
-          }
-        })
+          };
+        });
+
+        this.$nextTick(() => {
+          this.resizeGridHeight();
+        });
       },
       immediate: true
-    }
+    },
+    scrollActive(val) {
+      if (val) {
+        this.startScroll();
+      }
+    },
   },
   computed: {
     height () {
-      return Math.ceil(this.items.length / this.rowCount) *
-        this.cellHeight
+      return Math.ceil(this.items.length / this.rowCount) * this.cellHeight;
     },
 
     style () {
       return {
         height: this.height + 'px'
       }
+    },
+
+    gridWrapperStyle () {
+      if (Number.isInteger(this.gridWrapperHeight)) {
+        return {
+          ...this.wrapperStyles,
+          height: this.gridWrapperHeight + 'px',
+        };
+      }
+
+      return this.wrapperStyles;
     },
 
     rowCount () {
@@ -162,6 +234,9 @@ export default {
     },
 
     onDragEnd (event) {
+      this.scrollActive = false;
+      this.scrollOffset = 0;
+
       this.$emit('dragend', this.wrapEvent(event));
     },
 
@@ -180,7 +255,19 @@ export default {
         this.sortList(event.index, event.gridPosition)
       }
 
-      this.$emit('drag', this.wrapEvent({ event }))
+      if (!this.scrollElement) {
+        return false;
+      }
+
+      let { pageY } = event.event;
+
+      let mousePosition = pageY - this.scrollElement.offsetTop;
+      let coef = mousePosition / this.scrollElement.clientHeight;
+
+      this.scrollActive = coef < this.scrollZona || (1 - this.scrollZona) < coef;
+      this.scrollToDown = coef > (1 - this.scrollZona);
+    
+      this.$emit('drag', this.wrapEvent({ event }));
     },
 
     sortList (itemIndex, gridPosition) {
@@ -231,14 +318,50 @@ export default {
 
         this.$emit('sort', this.wrapEvent())
       }
-    }
+    },
+    startScroll () {
+      let offsetY = this.scrollToDown ? this.scrollStep : -(this.scrollStep);
+
+      if (this.scrollElement) {
+        let lastScrollTop = this.scrollElement.scrollTop;
+        this.scrollElement.scrollBy(0, offsetY);
+        let currentScroll = this.scrollElement.scrollTop;
+
+        let scrollElementHeight = this.scrollElement.offsetHeight;
+        let childHeight = this.scrollElement.firstChild.offsetHeight;
+        
+        let scrollToUp = lastScrollTop > currentScroll;
+        let scrollToDown = lastScrollTop < currentScroll && (currentScroll + scrollElementHeight) < childHeight;
+
+        if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
+          let newScrollOffset = this.scrollOffset + offsetY;
+          this.scrollOffset = newScrollOffset;
+
+          setTimeout(() => {
+            if (this.scrollActive) {
+              this.startScroll();
+            }
+          }, this.scrollInterval);
+        }
+      }
+    },
+    resizeGridHeight () {
+      if (this.$refs.hasOwnProperty('grid-wrapper')) {
+        let gridWrapper = this.$refs['grid-wrapper'];
+        this.gridWrapperHeight = gridWrapper.firstChild.clientHeight;
+      }
+    },
   }
 }
 </script>
 <style lang="scss">
-body {
-  margin: 0;
-  padding: 0;
+.v-grid-wrapper {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  @media print {
+    height: auto !important;
+  }
 }
 
 .v-grid {
