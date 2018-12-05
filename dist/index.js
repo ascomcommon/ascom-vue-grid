@@ -258,8 +258,8 @@
                 window.removeEventListener("resize", this.resizeGridHeight);
             },
             mounted: function() {
-                this.scrollElement = this.$refs["grid-wrapper"], this.scrollElement.style["overflow-y"] = "auto", 
-                this.resizeGridHeight();
+                this.refScrollElement ? (this.scrollElement = this.refScrollElement, this.$refs["grid-wrapper"].style["overflow-y"] = "hidden") : (this.scrollElement = this.$refs["grid-wrapper"], 
+                this.scrollElement.style["overflow-y"] = "auto"), this.resizeGridHeight();
             },
             watch: {
                 refScrollElement: function(val) {
