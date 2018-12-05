@@ -104,9 +104,14 @@ export default {
     window.removeEventListener('resize', this.resizeGridHeight);
   },
   mounted () {
-    this.scrollElement = this.$refs['grid-wrapper'];
-    this.scrollElement.style['overflow-y'] = "auto";
-    
+    if (this.refScrollElement) {
+      this.scrollElement = this.refScrollElement;
+      this.$refs['grid-wrapper'].style['overflow-y'] = "hidden";
+    } else {
+      this.scrollElement = this.$refs['grid-wrapper'];
+      this.scrollElement.style['overflow-y'] = "auto";
+    }
+
     this.resizeGridHeight();
   },
   watch: {
