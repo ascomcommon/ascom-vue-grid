@@ -258,17 +258,17 @@
                 window.removeEventListener("resize", this.resizeGridHeight);
             },
             mounted: function() {
-                this.refScrollElement ? (this.scrollElement = this.refScrollElement, this.$refs["grid-wrapper"].style["overflow-y"] = "visible") : (this.scrollElement = this.$refs["grid-wrapper"], 
+                this.refScrollElement ? (this.scrollElement = this.refScrollElement, this.$refs["grid-wrapper"].style.overflow = "visible") : (this.scrollElement = this.$refs["grid-wrapper"], 
                 this.scrollElement.style["overflow-y"] = "auto"), this.resizeGridHeight();
             },
             watch: {
                 refScrollElement: function(val) {
-                    val ? (this.scrollElement = val, this.$refs["grid-wrapper"].style["overflow-y"] = "visible") : (this.scrollElement = this.$refs["grid-wrapper"], 
+                    val ? (this.scrollElement = val, this.$refs["grid-wrapper"].style.overflow = "visible") : (this.scrollElement = this.$refs["grid-wrapper"], 
                     this.scrollElement.style["overflow-y"] = "auto");
                 },
                 items: {
                     handler: function() {
-                        var nextItems = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
+                        var _this = this, nextItems = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
                         this.list = nextItems.map(function(item, index) {
                             return {
                                 item: item,
@@ -276,6 +276,8 @@
                                 key: item.hasOwnProperty("id") ? item.id : index,
                                 sort: index
                             };
+                        }), this.$nextTick(function() {
+                            _this.resizeGridHeight();
                         });
                     },
                     immediate: !0
@@ -375,7 +377,7 @@
                     }), this.$emit("sort", this.wrapEvent()));
                 },
                 startScroll: function() {
-                    var _this = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
+                    var _this2 = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
                     if (this.scrollElement) {
                         var lastScrollTop = this.scrollElement.scrollTop;
                         this.scrollElement.scrollBy(0, offsetY);
@@ -383,15 +385,15 @@
                         if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
                             var newScrollOffset = this.scrollOffset + offsetY;
                             this.scrollOffset = newScrollOffset, setTimeout(function() {
-                                _this.scrollActive && _this.startScroll();
+                                _this2.scrollActive && _this2.startScroll();
                             }, this.scrollInterval);
                         }
                     }
                 },
                 resizeGridHeight: function() {
                     if (this.$refs.hasOwnProperty("grid-wrapper")) {
-                        var gridWrapper = this.$refs["grid-wrapper"], parentHeight = gridWrapper.parentElement.clientHeight;
-                        this.gridWrapperHeight = parentHeight;
+                        var gridWrapper = this.$refs["grid-wrapper"];
+                        this.gridWrapperHeight = gridWrapper.firstChild.clientHeight;
                     }
                 }
             }

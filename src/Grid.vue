@@ -106,7 +106,7 @@ export default {
   mounted () {
     if (this.refScrollElement) {
       this.scrollElement = this.refScrollElement;
-      this.$refs['grid-wrapper'].style['overflow-y'] = "visible";
+      this.$refs['grid-wrapper'].style['overflow'] = "visible";
     } else {
       this.scrollElement = this.$refs['grid-wrapper'];
       this.scrollElement.style['overflow-y'] = "auto";
@@ -118,7 +118,7 @@ export default {
     refScrollElement (val) {
       if (val) {
         this.scrollElement = val;
-        this.$refs['grid-wrapper'].style['overflow-y'] = "visible";
+        this.$refs['grid-wrapper'].style['overflow'] = "visible";
       } else {
         this.scrollElement = this.$refs['grid-wrapper'];
         this.scrollElement.style['overflow-y'] = "auto";
@@ -133,8 +133,12 @@ export default {
             index,
             key,
             sort: index
-          }
-        })
+          };
+        });
+
+        this.$nextTick(() => {
+          this.resizeGridHeight();
+        });
       },
       immediate: true
     },
@@ -146,8 +150,7 @@ export default {
   },
   computed: {
     height () {
-      return Math.ceil(this.items.length / this.rowCount) *
-        this.cellHeight
+      return Math.ceil(this.items.length / this.rowCount) * this.cellHeight;
     },
 
     style () {
@@ -345,9 +348,7 @@ export default {
     resizeGridHeight () {
       if (this.$refs.hasOwnProperty('grid-wrapper')) {
         let gridWrapper = this.$refs['grid-wrapper'];
-        let parentHeight = gridWrapper.parentElement.clientHeight;
-
-        this.gridWrapperHeight = parentHeight;
+        this.gridWrapperHeight = gridWrapper.firstChild.clientHeight;
       }
     },
   }
