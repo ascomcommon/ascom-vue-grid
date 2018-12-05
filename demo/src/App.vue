@@ -16,34 +16,35 @@
         </div>
 
         <div class="grid">
-      <grid
-        :center="false"
-        :draggable="true"
-        :sortable="true"
-        :items="colors"
-        :cellWidth="300"
-        :cellHeight="200"
-        :scroll-zona="0.3"
-        :scroll-step="10"
-        :scroll-interval="10"
-        :ref-scroll-element="scrollElement"
-        @alltransitionend="onTransitionEnd"
-        @change="change"
-        @remove="remove"
-        @click="click"
+          <grid
+            :center="false"
+            :draggable="true"
+            :sortable="true"
+            :items="colors"
+            :cellWidth="300"
+            :cellHeight="200"
+            :scroll-zona="0.3"
+            :scroll-step="10"
+            :scroll-interval="10"
+            :ref-scroll-element="scrollElement"
+            :wrapper-styles="wrapperStyles"
+            @alltransitionend="onTransitionEnd"
+            @change="change"
+            @remove="remove"
+            @click="click"
             @sort="sort"
           >
-        <template slot="cell" scope="props">
-              <Icon
-                :color="props.item"
-                :index="props.index"
-                :with-button="true"
-                @remove="props.remove()"
-              />
-        </template>
-      </grid>
-    </div>
-  </div>
+            <template slot="cell" scope="props">
+                  <Icon
+                    :color="props.item"
+                    :index="props.index"
+                    :with-button="true"
+                    @remove="props.remove()"
+                  />
+            </template>
+          </grid>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -64,6 +65,7 @@ export default {
       colors,
       selected: null,
       expandColor: { r: 200, g: 50, b: 50 },
+      wrapperStyles: {  },
       scrollElement: null,
     };
   },

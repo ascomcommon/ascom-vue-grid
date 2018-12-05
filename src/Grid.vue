@@ -81,6 +81,10 @@ export default {
     refScrollElement: {
       
     },
+    wrapperStyles: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   data () {
     return {
@@ -150,11 +154,12 @@ export default {
     gridWrapperStyle () {
       if (Number.isInteger(this.gridWrapperHeight)) {
         return {
+          ...this.wrapperStyles,
           height: this.gridWrapperHeight + 'px',
         };
       }
 
-      return null;
+      return this.wrapperStyles;
     },
 
     rowCount () {

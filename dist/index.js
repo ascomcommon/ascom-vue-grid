@@ -232,7 +232,13 @@
                     type: Number,
                     default: 10
                 },
-                refScrollElement: {}
+                refScrollElement: {},
+                wrapperStyles: {
+                    type: Object,
+                    default: function() {
+                        return {};
+                    }
+                }
             },
             data: function() {
                 return {
@@ -288,9 +294,9 @@
                     };
                 },
                 gridWrapperStyle: function() {
-                    return Number.isInteger(this.gridWrapperHeight) ? {
+                    return Number.isInteger(this.gridWrapperHeight) ? _extends({}, this.wrapperStyles, {
                         height: this.gridWrapperHeight + "px"
-                    } : null;
+                    }) : this.wrapperStyles;
                 },
                 rowCount: function() {
                     return Math.floor(this.windowWidth / this.cellWidth);
