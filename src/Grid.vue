@@ -118,7 +118,7 @@ export default {
     refScrollElement (val) {
       if (val) {
         this.scrollElement = val;
-        this.$refs['grid-wrapper'].style['overflow-y'] = "hidden";
+        this.$refs['grid-wrapper'].style['overflow-y'] = "visible";
       } else {
         this.scrollElement = this.$refs['grid-wrapper'];
         this.scrollElement.style['overflow-y'] = "auto";

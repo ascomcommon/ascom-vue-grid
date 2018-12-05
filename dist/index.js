@@ -263,7 +263,7 @@
             },
             watch: {
                 refScrollElement: function(val) {
-                    val ? (this.scrollElement = val, this.$refs["grid-wrapper"].style["overflow-y"] = "hidden") : (this.scrollElement = this.$refs["grid-wrapper"], 
+                    val ? (this.scrollElement = val, this.$refs["grid-wrapper"].style["overflow-y"] = "visible") : (this.scrollElement = this.$refs["grid-wrapper"], 
                     this.scrollElement.style["overflow-y"] = "auto");
                 },
                 items: {
