@@ -39,7 +39,11 @@ export default {
     dragDelay: {
       type: Number,
       default: 0
-    }
+    },
+    scrollOffset: {
+      type: Number,
+      default: 0,
+    },
   },
   data () {
     return {
@@ -52,21 +56,30 @@ export default {
       mouseMoveStartX: 0,
       mouseMoveStartY: 0,
 
+      lastEventMouse: null,
+
       shiftX: 0,
       shiftY: 0,
 
       timer: null,
 
-      zIndex: 1
+      zIndex: 1,
     }
   },
   mounted () {
     this.$refs.self.addEventListener('transitionend', (event) => {
-        if (!this.dragging) {
-          this.zIndex = 1;
-          this.$emit('transitionend');
-        }
-      });
+      if (!this.dragging) {
+        this.zIndex = 1
+        this.$emit('transitionend');
+      }
+    });
+  },
+  watch: {
+    scrollOffset(val) {
+      if (this.dragging) {
+        this.drag(this.lastEventMouse);
+      }
+    },
   },
   computed: {
     className () {
@@ -76,7 +89,7 @@ export default {
         'v-grid-item-wrapper',
         {
           'v-grid-item-animate': animate,
-          'v-grid-item-dragging': dragging
+          // 'v-grid-item-dragging': dragging
         }
       ]
     },
@@ -130,13 +143,14 @@ export default {
     },
 
     drag (event) {
-      let e = event.touches ? event.touches[0] : event
+      let e = event.touches ? event.touches[0] : event;
+      this.lastEventMouse = e;
 
       let distanceX = e.pageX - this.mouseMoveStartX
       let distanceY = e.pageY - this.mouseMoveStartY
 
       this.shiftX = distanceX + this.shiftStartX
-      this.shiftY = distanceY + this.shiftStartY
+      this.shiftY = distanceY + this.shiftStartY + this.scrollOffset;
 
       let gridX = Math.round(this.shiftX / this.cellWidth)
       let gridY = Math.round(this.shiftY / this.cellHeight)
@@ -208,7 +222,7 @@ export default {
         this.$emit('click', $event)
       }
 
-      this.$emit('dragend', $event)
+      this.$emit('dragend', $event);
     }
   }
 }
