@@ -380,7 +380,7 @@
                     var _this2 = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
                     if (this.scrollElement) {
                         var lastScrollTop = this.scrollElement.scrollTop;
-                        this.scrollElement.scrollBy(0, offsetY);
+                        this.scrollElement.scrollBy ? this.scrollElement.scrollBy(0, offsetY) : this.scrollElement.scrollTop = lastScrollTop + offsetY;
                         var currentScroll = this.scrollElement.scrollTop, scrollElementHeight = this.scrollElement.offsetHeight, childHeight = this.scrollElement.firstChild.offsetHeight, scrollToUp = lastScrollTop > currentScroll, scrollToDown = lastScrollTop < currentScroll && currentScroll + scrollElementHeight < childHeight;
                         if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
                             var newScrollOffset = this.scrollOffset + offsetY;

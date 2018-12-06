@@ -324,7 +324,14 @@ export default {
 
       if (this.scrollElement) {
         let lastScrollTop = this.scrollElement.scrollTop;
-        this.scrollElement.scrollBy(0, offsetY);
+
+        if (this.scrollElement.scrollBy) {
+          this.scrollElement.scrollBy(0, offsetY);
+        } else {
+          // for Edge
+          this.scrollElement.scrollTop = lastScrollTop + offsetY;
+        }
+
         let currentScroll = this.scrollElement.scrollTop;
 
         let scrollElementHeight = this.scrollElement.offsetHeight;
