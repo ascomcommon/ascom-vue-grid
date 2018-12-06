@@ -10,7 +10,6 @@
                 :row-count="rowCount"
                 :cell-width="cellWidth"
                 :cell-height="cellHeight"
-                :window-width="windowWidth"
                 :row-shift="rowShift"
                 :scroll-offset="scrollOffset"
                 @transitionend="() => onTransitionEnd(v.key)"
@@ -49,6 +48,10 @@ export default {
     cellHeight: {
       type: Number,
       default: 80
+    },
+    numberOfColumns: {
+      type: Number,
+      default: 0,
     },
     draggable: {
       type: Boolean,
@@ -92,16 +95,19 @@ export default {
       scrollActive: false,
       scrollToDown: true,
       scrollOffset: 0,
-      gridWrapperHeight: null,
+      gridSize: {
+        width: 0,
+        height: 0,
+      },
       currentScroll: 0,
       elementIdInMotion: null,
     }
   },
   created () {
-    window.addEventListener("resize", this.resizeGridHeight);
+    window.addEventListener("resize", this.resizeGrid);
   },
   beforeDestroy () {
-    window.removeEventListener('resize', this.resizeGridHeight);
+    window.removeEventListener('resize', this.resizeGrid);
   },
   mounted () {
     if (this.refScrollElement) {
@@ -112,7 +118,7 @@ export default {
       this.scrollElement.style['overflow-y'] = "auto";
     }
 
-    this.resizeGridHeight();
+    this.resizeGrid();
   },
   watch: {
     refScrollElement (val) {
@@ -137,7 +143,7 @@ export default {
         });
 
         this.$nextTick(() => {
-          this.resizeGridHeight();
+          this.resizeGrid();
         });
       },
       immediate: true
@@ -160,10 +166,10 @@ export default {
     },
 
     gridWrapperStyle () {
-      if (Number.isInteger(this.gridWrapperHeight)) {
+      if (Number.isInteger(this.gridSize.height)) {
         return {
           ...this.wrapperStyles,
-          height: this.gridWrapperHeight + 'px',
+          height: this.gridSize.height + 'px',
         };
       }
 
@@ -171,15 +177,16 @@ export default {
     },
 
     rowCount () {
-      return Math.floor(this.windowWidth / this.cellWidth)
+      // TODO gridSize.width = 0
+      return Math.floor(this.gridSize.width / this.cellWidth);
     },
 
     rowShift () {
       if (this.center) {
         let contentWidth = this.items.length * this.cellWidth
-        let rowShift = contentWidth < this.windowWidth
-          ? (this.windowWidth - contentWidth) / 2
-          : (this.windowWidth % this.cellWidth) / 2
+        let rowShift = contentWidth < this.gridSize.width
+          ? (this.gridSize.width - contentWidth) / 2
+          : (this.gridSize.width % this.cellWidth) / 2
 
         return Math.floor(rowShift)
       }
@@ -345,10 +352,11 @@ export default {
         }
       }
     },
-    resizeGridHeight () {
+    resizeGrid () {
       if (this.$refs.hasOwnProperty('grid-wrapper')) {
         let gridWrapper = this.$refs['grid-wrapper'];
-        this.gridWrapperHeight = gridWrapper.firstChild.clientHeight;
+        this.gridSize.width = gridWrapper.firstChild.clientWidth;
+        this.gridSize.height = gridWrapper.firstChild.clientHeight;
       }
     },
   }

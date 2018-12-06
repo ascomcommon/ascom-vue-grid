@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="color-header">
-      <Icon :color="selected" style="width: auto;">
+      <Icon :color="selected" style="width: auto">
         ascom-vue-grid
       </Icon>
     </div>
@@ -21,8 +21,8 @@
             :draggable="true"
             :sortable="true"
             :items="colors"
-            :cellWidth="300"
-            :cellHeight="200"
+            :cell-width="300"
+            :cell-height="200"
             :scroll-zona="0.3"
             :scroll-step="10"
             :scroll-interval="10"
@@ -35,12 +35,12 @@
             @sort="sort"
           >
             <template slot="cell" scope="props">
-                  <Icon
-                    :color="props.item"
-                    :index="props.index"
-                    :with-button="true"
-                    @remove="props.remove()"
-                  />
+              <Icon
+                :color="props.item"
+                :index="props.index"
+                :with-button="true"
+                @remove="props.remove()"
+              />
             </template>
           </grid>
         </div>
@@ -76,8 +76,8 @@ export default {
 
   methods: {
     click ({ items, index }) {
-      let value = items.find(v => v.index === index)
-      this.selected = value.item
+      let value = items.find(v => v.index === index);
+      this.selected = value.item;
     },
 
     onTransitionEnd () {
@@ -131,10 +131,11 @@ html, body {
 
 .scroll-element {
   overflow: auto;
-  padding: 40px;
+  // padding: 40px;
 }
 
 .scroll-element-child {
+
 }
 
 .grid {
