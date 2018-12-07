@@ -497,7 +497,7 @@
                 },
                 dragStart: function(event) {
                     var e = event.touches ? event.touches[0] : event;
-                    this.zIndex = 2, this.shiftX = this.shiftStartX = this.left, this.shiftY = this.shiftStartY = this.top, 
+                    this.zIndex = 10, this.shiftX = this.shiftStartX = this.left, this.shiftY = this.shiftStartY = this.top, 
                     this.mouseMoveStartX = e.pageX, this.mouseMoveStartY = e.pageY, this.animate = !1, 
                     this.dragging = !0, document.addEventListener("mousemove", this.documentMouseMove), 
                     document.addEventListener("touchmove", this.documentMouseMove), this.$emit("dragstart", this.wrapEvent(event));
