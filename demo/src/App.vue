@@ -28,6 +28,7 @@
             :scroll-interval="10"
             :ref-scroll-element="scrollElement"
             :wrapper-styles="wrapperStyles"
+            @change-item-width="onChangeItemWidth"
             @alltransitionend="onTransitionEnd"
             @change="change"
             @remove="remove"
@@ -81,6 +82,10 @@ export default {
     click ({ items, index }) {
       let value = items.find(v => v.index === index);
       this.selected = value.item;
+    },
+
+    onChangeItemWidth (itemWidth) {
+      console.log('onChangeItemWidth', { itemWidth });
     },
 
     onTransitionEnd () {

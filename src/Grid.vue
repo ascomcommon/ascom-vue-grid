@@ -201,11 +201,13 @@ export default {
     },
 
     itemWidth () {
-      if (this.columns > 0 && this.gridSize.width > 0) {
-        return this.gridSize.width / this.columns;
-      }
+      let itemWidth = this.columns > 0 && this.gridSize.width > 0 ?
+        this.gridSize.width / this.columns :
+        this.cellWidth;
 
-      return this.cellWidth;
+      this.$emit('change-item-width', itemWidth);
+
+      return itemWidth;
     },
 
     itemHeight () {

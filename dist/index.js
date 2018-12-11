@@ -325,7 +325,8 @@
                     return this.columns > 0 ? this.columns : Math.floor(this.windowWidth / this.cellWidth);
                 },
                 itemWidth: function() {
-                    return this.columns > 0 && this.gridSize.width > 0 ? this.gridSize.width / this.columns : this.cellWidth;
+                    var itemWidth = this.columns > 0 && this.gridSize.width > 0 ? this.gridSize.width / this.columns : this.cellWidth;
+                    return this.$emit("change-item-width", itemWidth), itemWidth;
                 },
                 itemHeight: function() {
                     return this.cellHeight;
