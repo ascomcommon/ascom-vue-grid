@@ -233,8 +233,6 @@ export default {
   display: block;
   position: absolute;
   box-sizing: border-box;
-  opacity: 1;
-  transition: opacity 800ms ease;
 
   left: 0;
   top: 0;
@@ -255,7 +253,7 @@ export default {
   }
 
   &.v-grid-item-dragging {
-    opacity: 0.8;
+    
   }
 }
 </style>
