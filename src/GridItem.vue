@@ -125,7 +125,7 @@ export default {
     dragStart (event) {
       let e = event.touches ? event.touches[0] : event
 
-      this.zIndex = 2
+      this.zIndex = 10;
 
       this.shiftX = this.shiftStartX = this.left
       this.shiftY = this.shiftStartY = this.top

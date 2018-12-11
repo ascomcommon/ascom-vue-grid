@@ -392,7 +392,7 @@
                     var _this2 = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
                     if (this.scrollElement) {
                         var lastScrollTop = this.scrollElement.scrollTop;
-                        this.scrollElement.scrollBy(0, offsetY);
+                        this.scrollElement.scrollBy ? this.scrollElement.scrollBy(0, offsetY) : this.scrollElement.scrollTop = lastScrollTop + offsetY;
                         var currentScroll = this.scrollElement.scrollTop, scrollElementHeight = this.scrollElement.offsetHeight, childHeight = this.scrollElement.firstChild.offsetHeight, scrollToUp = lastScrollTop > currentScroll, scrollToDown = lastScrollTop < currentScroll && currentScroll + scrollElementHeight < childHeight;
                         if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
                             var newScrollOffset = this.scrollOffset + offsetY;
@@ -509,7 +509,7 @@
                 },
                 dragStart: function(event) {
                     var e = event.touches ? event.touches[0] : event;
-                    this.zIndex = 2, this.shiftX = this.shiftStartX = this.left, this.shiftY = this.shiftStartY = this.top, 
+                    this.zIndex = 10, this.shiftX = this.shiftStartX = this.left, this.shiftY = this.shiftStartY = this.top, 
                     this.mouseMoveStartX = e.pageX, this.mouseMoveStartY = e.pageY, this.animate = !1, 
                     this.dragging = !0, document.addEventListener("mousemove", this.documentMouseMove), 
                     document.addEventListener("touchmove", this.documentMouseMove), this.$emit("dragstart", this.wrapEvent(event));
