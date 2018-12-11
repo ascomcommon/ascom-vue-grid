@@ -9,7 +9,7 @@
         :sort="v.sort"
         :draggable="draggable"
         :drag-delay="dragDelay"
-        :row-count="columnCount"
+        :column-count="columnCount"
         :cell-width="itemWidth"
         :cell-height="itemHeight"
         :scroll-offset="scrollOffset"

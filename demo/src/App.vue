@@ -35,12 +35,14 @@
             @sort="sort"
           >
             <template slot="cell" scope="props">
-              <Icon
-                :color="props.item"
-                :index="props.index"
-                :with-button="true"
-                @remove="props.remove()"
-              />
+              <div class="icon-wrapper">
+                <Icon
+                  :color="props.item"
+                  :index="props.index"
+                  :with-button="true"
+                  @remove="props.remove()"
+                />
+              </div>
             </template>
           </grid>
         </div>
@@ -50,8 +52,8 @@
 </template>
 
 <script>
-import Icon from './Icon.vue'
-import { generateRGBColors } from './util'
+import Icon from './Icon.vue';
+import { generateRGBColors } from './util';
 
 export default {
   name: 'app',
@@ -101,6 +103,10 @@ export default {
 </script>
 
 <style lang="scss">
+* {
+  box-sizing: border-box;
+}
+
 html, body {
   background: #fafafa;
   padding: 0;
@@ -128,20 +134,25 @@ html, body {
 .expand-item {
   width: 100%;
   height: 300px;
+  padding: 10px;
 }
 
 .scroll-element {
   overflow: auto;
-  // padding: 40px;
 }
 
 .scroll-element-child {
-
+  padding: 5px;
 }
 
 .grid {
   overflow: hidden;
   flex: 1;
+}
+
+.icon-wrapper {
+  height: 100%;
+  padding: 10px;
 }
 
 </style>
