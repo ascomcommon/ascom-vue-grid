@@ -89,9 +89,9 @@ export default {
         'v-grid-item-wrapper',
         {
           'v-grid-item-animate': animate,
-          // 'v-grid-item-dragging': dragging
-        }
-      ]
+          'v-grid-item-dragging': dragging,
+        },
+      ];
     },
     style () {
       let { zIndex, cellWidth, cellHeight, top, left } = this
@@ -233,6 +233,8 @@ export default {
   display: block;
   position: absolute;
   box-sizing: border-box;
+  opacity: 1;
+  transition: opacity 800ms ease;
 
   left: 0;
   top: 0;
@@ -253,7 +255,7 @@ export default {
   }
 
   &.v-grid-item-dragging {
-  //  z-index: 9000 !important;
+    opacity: 0.8;
   }
 }
 </style>

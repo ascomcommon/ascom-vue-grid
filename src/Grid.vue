@@ -127,7 +127,9 @@ export default {
       this.scrollElement.style['overflow-y'] = "auto";
     }
 
-    this.itemsIsShown = true;
+    this.$nextTick(() => {
+      this.itemsIsShown = true;
+    });
   },
   watch: {
     refScrollElement (val) {
@@ -161,6 +163,11 @@ export default {
       if (val) {
         this.startScroll();
       }
+    },
+    columns () {
+      this.$nextTick(() => {
+        this.resizeGrid();
+      });
     },
   },
   computed: {

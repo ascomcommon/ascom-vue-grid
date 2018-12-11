@@ -69,7 +69,7 @@ export default {
       expandColor: { r: 200, g: 50, b: 50 },
       wrapperStyles: {  },
       scrollElement: null,
-      columnCount: 3,
+      columnCount: 2,
     };
   },
 

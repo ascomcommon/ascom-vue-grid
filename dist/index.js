@@ -270,8 +270,11 @@
                 window.removeEventListener("resize", this.resizeGrid);
             },
             mounted: function() {
+                var _this = this;
                 this.refScrollElement ? (this.scrollElement = this.refScrollElement, this.$refs["grid-wrapper"].style.overflow = "visible") : (this.scrollElement = this.$refs["grid-wrapper"], 
-                this.scrollElement.style["overflow-y"] = "auto"), this.itemsIsShown = !0;
+                this.scrollElement.style["overflow-y"] = "auto"), this.$nextTick(function() {
+                    _this.itemsIsShown = !0;
+                });
             },
             watch: {
                 refScrollElement: function(val) {
@@ -280,7 +283,7 @@
                 },
                 items: {
                     handler: function() {
-                        var _this = this, nextItems = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
+                        var _this2 = this, nextItems = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
                         this.list = nextItems.map(function(item, index) {
                             return {
                                 item: item,
@@ -289,13 +292,19 @@
                                 sort: index
                             };
                         }), this.$nextTick(function() {
-                            _this.resizeGrid();
+                            _this2.resizeGrid();
                         });
                     },
                     immediate: !0
                 },
                 scrollActive: function(val) {
                     val && this.startScroll();
+                },
+                columns: function() {
+                    var _this3 = this;
+                    this.$nextTick(function() {
+                        _this3.resizeGrid();
+                    });
                 }
             },
             computed: {
@@ -389,7 +398,7 @@
                     }), this.$emit("sort", this.wrapEvent()));
                 },
                 startScroll: function() {
-                    var _this2 = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
+                    var _this4 = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
                     if (this.scrollElement) {
                         var lastScrollTop = this.scrollElement.scrollTop;
                         this.scrollElement.scrollBy ? this.scrollElement.scrollBy(0, offsetY) : this.scrollElement.scrollTop = lastScrollTop + offsetY;
@@ -397,7 +406,7 @@
                         if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
                             var newScrollOffset = this.scrollOffset + offsetY;
                             this.scrollOffset = newScrollOffset, setTimeout(function() {
-                                _this2.scrollActive && _this2.startScroll();
+                                _this4.scrollActive && _this4.startScroll();
                             }, this.scrollInterval);
                         }
                     }
@@ -477,10 +486,9 @@
             },
             computed: {
                 className: function() {
-                    var animate = this.animate;
-                    this.dragging;
                     return [ "v-grid-item-wrapper", {
-                        "v-grid-item-animate": animate
+                        "v-grid-item-animate": this.animate,
+                        "v-grid-item-dragging": this.dragging
                     } ];
                 },
                 style: function() {
@@ -597,7 +605,7 @@
     }, function(module, exports, __webpack_require__) {
         exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-wrapper {\n  height: 100%;\n  overflow-x: hidden;\n  overflow-y: auto;\n}\n@media print {\n.v-grid-wrapper {\n      height: auto !important;\n}\n}\n.v-grid {\n  display: block;\n  position: relative;\n  width: 100%;\n}\n@media print {\n.v-grid {\n      height: auto !important;\n}\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
-        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n@media print {\n.v-grid-item-wrapper {\n      position: static;\n      transform: translate3d(0px, 0px, 0px) !important;\n      width: auto !important;\n}\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: all 800ms ease;\n}\n", "" ]);
+        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  opacity: 1;\n  transition: opacity 800ms ease;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n@media print {\n.v-grid-item-wrapper {\n      position: static;\n      transform: translate3d(0px, 0px, 0px) !important;\n      width: auto !important;\n}\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: all 800ms ease;\n}\n.v-grid-item-wrapper.v-grid-item-dragging {\n    opacity: 0.8;\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
         __webpack_require__(14);
         var Component = __webpack_require__(1)(__webpack_require__(5), __webpack_require__(12), null, null);
