@@ -204,6 +204,10 @@
                     type: Number,
                     default: 80
                 },
+                numberOfColumns: {
+                    type: Number,
+                    default: 0
+                },
                 draggable: {
                     type: Boolean,
                     default: !1
@@ -238,6 +242,10 @@
                     default: function() {
                         return {};
                     }
+                },
+                columns: {
+                    type: Number,
+                    default: 0
                 }
             },
             data: function() {
@@ -246,20 +254,24 @@
                     scrollActive: !1,
                     scrollToDown: !0,
                     scrollOffset: 0,
-                    gridWrapperHeight: null,
+                    gridSize: {
+                        width: 0,
+                        height: 0
+                    },
                     currentScroll: 0,
-                    elementIdInMotion: null
+                    elementIdInMotion: null,
+                    itemsIsShown: !1
                 };
             },
             created: function() {
-                window.addEventListener("resize", this.resizeGridHeight);
+                window.addEventListener("resize", this.resizeGrid);
             },
             beforeDestroy: function() {
-                window.removeEventListener("resize", this.resizeGridHeight);
+                window.removeEventListener("resize", this.resizeGrid);
             },
             mounted: function() {
                 this.refScrollElement ? (this.scrollElement = this.refScrollElement, this.$refs["grid-wrapper"].style.overflow = "visible") : (this.scrollElement = this.$refs["grid-wrapper"], 
-                this.scrollElement.style["overflow-y"] = "auto"), this.resizeGridHeight();
+                this.scrollElement.style["overflow-y"] = "auto"), this.itemsIsShown = !0;
             },
             watch: {
                 refScrollElement: function(val) {
@@ -277,7 +289,7 @@
                                 sort: index
                             };
                         }), this.$nextTick(function() {
-                            _this.resizeGridHeight();
+                            _this.resizeGrid();
                         });
                     },
                     immediate: !0
@@ -288,7 +300,7 @@
             },
             computed: {
                 height: function() {
-                    return Math.ceil(this.items.length / this.rowCount) * this.cellHeight;
+                    return Math.ceil(this.items.length / this.columnCount) * this.cellHeight;
                 },
                 style: function() {
                     return {
@@ -296,19 +308,18 @@
                     };
                 },
                 gridWrapperStyle: function() {
-                    return Number.isInteger(this.gridWrapperHeight) ? _extends({}, this.wrapperStyles, {
-                        height: this.gridWrapperHeight + "px"
+                    return this.gridSize.height > 0 ? _extends({}, this.wrapperStyles, {
+                        height: this.gridSize.height + "px"
                     }) : this.wrapperStyles;
                 },
-                rowCount: function() {
-                    return Math.floor(this.windowWidth / this.cellWidth);
+                columnCount: function() {
+                    return this.columns > 0 ? this.columns : Math.floor(this.windowWidth / this.cellWidth);
                 },
-                rowShift: function() {
-                    if (this.center) {
-                        var contentWidth = this.items.length * this.cellWidth, rowShift = contentWidth < this.windowWidth ? (this.windowWidth - contentWidth) / 2 : this.windowWidth % this.cellWidth / 2;
-                        return Math.floor(rowShift);
-                    }
-                    return 0;
+                itemWidth: function() {
+                    return this.columns > 0 && this.gridSize.width > 0 ? this.gridSize.width / this.columns : this.cellWidth;
+                },
+                itemHeight: function() {
+                    return this.cellHeight;
                 }
             },
             methods: {
@@ -352,12 +363,13 @@
                     this.$emit("click", this.wrapEvent(event));
                 },
                 onDrag: function(event) {
-                    if (this.sortable && this.sortList(event.index, event.gridPosition), !this.scrollElement) return !1;
-                    var pageY = event.event.pageY, mousePosition = pageY - this.scrollElement.offsetTop, coef = mousePosition / this.scrollElement.clientHeight;
-                    this.scrollActive = coef < this.scrollZona || 1 - this.scrollZona < coef, this.scrollToDown = coef > 1 - this.scrollZona, 
-                    this.$emit("drag", this.wrapEvent({
-                        event: event
-                    }));
+                    if (this.sortable && this.sortList(event.index, event.gridPosition), this.scrollElement) {
+                        var pageY = event.event.pageY, mousePosition = pageY - this.scrollElement.offsetTop, coef = mousePosition / this.scrollElement.clientHeight;
+                        this.scrollActive = coef < this.scrollZona || 1 - this.scrollZona < coef, this.scrollToDown = coef > 1 - this.scrollZona, 
+                        this.$emit("drag", this.wrapEvent({
+                            event: event
+                        }));
+                    }
                 },
                 sortList: function(itemIndex, gridPosition) {
                     var targetItem = this.list.find(function(item) {
@@ -390,10 +402,10 @@
                         }
                     }
                 },
-                resizeGridHeight: function() {
+                resizeGrid: function() {
                     if (this.$refs.hasOwnProperty("grid-wrapper")) {
                         var gridWrapper = this.$refs["grid-wrapper"];
-                        this.gridWrapperHeight = gridWrapper.firstChild.clientHeight;
+                        this.gridSize.width = gridWrapper.firstChild.clientWidth, this.gridSize.height = gridWrapper.firstChild.clientHeight;
                     }
                 }
             }
@@ -418,7 +430,7 @@
                 cellHeight: {
                     type: Number
                 },
-                rowCount: {
+                columnCount: {
                     type: Number
                 },
                 rowShift: {
@@ -481,10 +493,10 @@
                     };
                 },
                 left: function() {
-                    return this.dragging ? this.shiftX : this.rowShift + this.sort % this.rowCount * this.cellWidth;
+                    return this.dragging ? this.shiftX : this.rowShift + this.sort % this.columnCount * this.cellWidth;
                 },
                 top: function() {
-                    return this.dragging ? this.shiftY : Math.floor(this.sort / this.rowCount) * this.cellHeight;
+                    return this.dragging ? this.shiftY : Math.floor(this.sort / this.columnCount) * this.cellHeight;
                 }
             },
             methods: {
@@ -508,8 +520,8 @@
                     var distanceX = e.pageX - this.mouseMoveStartX, distanceY = e.pageY - this.mouseMoveStartY;
                     this.shiftX = distanceX + this.shiftStartX, this.shiftY = distanceY + this.shiftStartY + this.scrollOffset;
                     var gridX = Math.round(this.shiftX / this.cellWidth), gridY = Math.round(this.shiftY / this.cellHeight);
-                    gridX = Math.min(gridX, this.rowCount - 1), gridY = Math.max(gridY, 0);
-                    var gridPosition = gridX + gridY * this.rowCount, $event = {
+                    gridX = Math.min(gridX, this.columnCount - 1), gridY = Math.max(gridY, 0);
+                    var gridPosition = gridX + gridY * this.columnCount, $event = {
                         event: event,
                         distanceX: distanceX,
                         distanceY: distanceY,
@@ -585,7 +597,7 @@
     }, function(module, exports, __webpack_require__) {
         exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-wrapper {\n  height: 100%;\n  overflow-x: hidden;\n  overflow-y: auto;\n}\n@media print {\n.v-grid-wrapper {\n      height: auto !important;\n}\n}\n.v-grid {\n  display: block;\n  position: relative;\n  width: 100%;\n}\n@media print {\n.v-grid {\n      height: auto !important;\n}\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
-        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n@media print {\n.v-grid-item-wrapper {\n      position: static;\n      transform: translate3d(0px, 0px, 0px) !important;\n      width: auto !important;\n}\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: transform 800ms ease;\n}\n", "" ]);
+        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n@media print {\n.v-grid-item-wrapper {\n      position: static;\n      transform: translate3d(0px, 0px, 0px) !important;\n      width: auto !important;\n}\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: all 800ms ease;\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
         __webpack_require__(14);
         var Component = __webpack_require__(1)(__webpack_require__(5), __webpack_require__(12), null, null);
@@ -603,18 +615,16 @@
                     staticClass: "v-grid",
                     style: _vm.style
                 }, _vm._l(_vm.list, function(v) {
-                    return _c("GridItem", {
+                    return _vm.itemsIsShown ? _c("GridItem", {
                         key: v.key,
                         attrs: {
                             index: v.index,
                             sort: v.sort,
                             draggable: _vm.draggable,
                             "drag-delay": _vm.dragDelay,
-                            "row-count": _vm.rowCount,
-                            "cell-width": _vm.cellWidth,
-                            "cell-height": _vm.cellHeight,
-                            "window-width": _vm.windowWidth,
-                            "row-shift": _vm.rowShift,
+                            "column-count": _vm.columnCount,
+                            "cell-width": _vm.itemWidth,
+                            "cell-height": _vm.itemHeight,
                             "scroll-offset": _vm.scrollOffset
                         },
                         on: {
@@ -635,7 +645,7 @@
                         remove: function() {
                             _vm.removeItem(v);
                         }
-                    }) ], 2);
+                    }) ], 2) : _vm._e();
                 })) ]);
             },
             staticRenderFns: []
