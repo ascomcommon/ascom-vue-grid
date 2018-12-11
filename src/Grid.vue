@@ -1,27 +1,31 @@
 <template>
   <div class="v-grid-wrapper" :style="gridWrapperStyle" ref="grid-wrapper">
     <div class="v-grid" :style="style" ref="grid">
-      <GridItem v-for="v in list"
-                :key="v.key"
-                :index="v.index"
-                :sort="v.sort"
-                :draggable="draggable"
-                :drag-delay="dragDelay"
-                :row-count="rowCount"
-                :cell-width="cellWidth"
-                :cell-height="cellHeight"
-                :row-shift="rowShift"
-                :scroll-offset="scrollOffset"
-                @transitionend="() => onTransitionEnd(v.key)"
-                @dragstart="(event) => onDragStart(event, v.key)"
-                @dragend="onDragEnd"
-                @drag="onDrag"
-                @click="click">
-        <slot name="cell"
-              :item="v.item"
-              :index="v.index"
-              :sort="v.sort"
-              :remove="() => { removeItem(v) }"/>
+      <GridItem
+        v-for="v in list"
+        v-if="itemsIsShown"
+        :key="v.key"
+        :index="v.index"
+        :sort="v.sort"
+        :draggable="draggable"
+        :drag-delay="dragDelay"
+        :row-count="columnCount"
+        :cell-width="itemWidth"
+        :cell-height="itemHeight"
+        :scroll-offset="scrollOffset"
+        @transitionend="() => onTransitionEnd(v.key)"
+        @dragstart="(event) => onDragStart(event, v.key)"
+        @dragend="onDragEnd"
+        @drag="onDrag"
+        @click="click"
+      >
+        <slot
+          name="cell"
+          :item="v.item"
+          :index="v.index"
+          :sort="v.sort"
+          :remove="() => { removeItem(v) }"
+        />
       </GridItem>
     </div>
   </div>
@@ -88,6 +92,10 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    columns: {
+      type: Number,
+      default: 0,
+    },
   },
   data () {
     return {
@@ -101,7 +109,8 @@ export default {
       },
       currentScroll: 0,
       elementIdInMotion: null,
-    }
+      itemsIsShown: false,
+    };
   },
   created () {
     window.addEventListener("resize", this.resizeGrid);
@@ -118,7 +127,7 @@ export default {
       this.scrollElement.style['overflow-y'] = "auto";
     }
 
-    this.resizeGrid();
+    this.itemsIsShown = true;
   },
   watch: {
     refScrollElement (val) {
@@ -131,14 +140,14 @@ export default {
       }
     },
     items: {
-      handler: function (nextItems = []) {
+      handler (nextItems = []) {
         this.list = nextItems.map((item, index) => {
           const key = item.hasOwnProperty('id') ? item.id : index;
           return {
             item,
             index,
             key,
-            sort: index
+            sort: index,
           };
         });
 
@@ -146,9 +155,9 @@ export default {
           this.resizeGrid();
         });
       },
-      immediate: true
+      immediate: true,
     },
-    scrollActive(val) {
+    scrollActive (val) {
       if (val) {
         this.startScroll();
       }
@@ -156,17 +165,17 @@ export default {
   },
   computed: {
     height () {
-      return Math.ceil(this.items.length / this.rowCount) * this.cellHeight;
+      return Math.ceil(this.items.length / this.columnCount) * this.cellHeight;
     },
 
     style () {
       return {
-        height: this.height + 'px'
-      }
+        height: this.height + 'px',
+      };
     },
 
     gridWrapperStyle () {
-      if (Number.isInteger(this.gridSize.height)) {
+      if (this.gridSize.height > 0) {
         return {
           ...this.wrapperStyles,
           height: this.gridSize.height + 'px',
@@ -176,22 +185,24 @@ export default {
       return this.wrapperStyles;
     },
 
-    rowCount () {
-      // TODO gridSize.width = 0
-      return Math.floor(this.gridSize.width / this.cellWidth);
+    columnCount () {
+      if (this.columns > 0) {
+        return this.columns;
+      }
+      
+      return Math.floor(this.windowWidth / this.cellWidth);
     },
 
-    rowShift () {
-      if (this.center) {
-        let contentWidth = this.items.length * this.cellWidth
-        let rowShift = contentWidth < this.gridSize.width
-          ? (this.gridSize.width - contentWidth) / 2
-          : (this.gridSize.width % this.cellWidth) / 2
-
-        return Math.floor(rowShift)
+    itemWidth () {
+      if (this.columns > 0 && this.gridSize.width > 0) {
+        return this.gridSize.width / this.columns;
       }
 
-      return 0
+      return this.cellWidth;
+    },
+
+    itemHeight () {
+      return this.cellHeight;
     }
   },
   methods: {
@@ -200,38 +211,31 @@ export default {
       return {
         datetime: Date.now(),
         items: this.getListClone(),
-        ...other
-      }
+        ...other,
+      };
     },
     /* Returns sorted clone of "list" array */
     getListClone () {
       return this.list
         .slice(0)
-        .sort((a, b) => {
-          return a.sort - b.sort
-        })
-      //  .map(v => {
-      //    return { ...v.item }
-      //  })
+        .sort((a, b) => a.sort - b.sort);
     },
 
     removeItem ({ index }) {
-      let removeItem = this.list.find(v => v.index === index)
-      let removeItemSort = removeItem.sort
+      let removeItem = this.list.find(v => v.index === index);
+      let removeItemSort = removeItem.sort;
 
       this.list = this.list
-        .filter(v => {
-          return v.index !== index
-        })
+        .filter(v =>  v.index !== index)
         .map(v => {
           let sort = v.sort > removeItemSort
             ? (v.sort - 1)
-            : v.sort
+            : v.sort;
 
-          return { ...v, sort }
-        })
+          return { ...v, sort };
+        });
 
-      this.$emit('remove', this.wrapEvent({ index }))
+      this.$emit('remove', this.wrapEvent({ index }));
     },
 
     onDragStart (event, id) {
@@ -254,60 +258,58 @@ export default {
     },
 
     click (event) {
-      this.$emit('click', this.wrapEvent(event))
+      this.$emit('click', this.wrapEvent(event));
     },
 
     onDrag (event) {
       if (this.sortable) {
-        this.sortList(event.index, event.gridPosition)
+        this.sortList(event.index, event.gridPosition);
       }
 
-      if (!this.scrollElement) {
-        return false;
+      if (this.scrollElement) {
+        let { pageY } = event.event;
+
+        let mousePosition = pageY - this.scrollElement.offsetTop;
+        let coef = mousePosition / this.scrollElement.clientHeight;
+
+        this.scrollActive = coef < this.scrollZona || (1 - this.scrollZona) < coef;
+        this.scrollToDown = coef > (1 - this.scrollZona);
+      
+        this.$emit('drag', this.wrapEvent({ event }));
       }
-
-      let { pageY } = event.event;
-
-      let mousePosition = pageY - this.scrollElement.offsetTop;
-      let coef = mousePosition / this.scrollElement.clientHeight;
-
-      this.scrollActive = coef < this.scrollZona || (1 - this.scrollZona) < coef;
-      this.scrollToDown = coef > (1 - this.scrollZona);
-    
-      this.$emit('drag', this.wrapEvent({ event }));
     },
 
     sortList (itemIndex, gridPosition) {
-      let targetItem = this.list.find(item => item.index === itemIndex)
-      let targetItemSort = targetItem.sort
+      let targetItem = this.list.find(item => item.index === itemIndex);
+      let targetItemSort = targetItem.sort;
 
       /*
         Normalizing new grid position
       */
-      gridPosition = Math.max(gridPosition, 0)
+      gridPosition = Math.max(gridPosition, 0);
       /*
         If you remove this line you can drag items to positions that
         are further than items array length
       */
-      gridPosition = Math.min(gridPosition, this.list.length - 1)
+      gridPosition = Math.min(gridPosition, this.list.length - 1);
 
       if (targetItemSort !== gridPosition) {
         this.list = this.list.map(item => {
           if (item.index === targetItem.index) {
             return {
               ...item,
-              sort: gridPosition
-            }
+              sort: gridPosition,
+            };
           }
 
-          const { sort } = item
+          const { sort } = item;
 
           if (targetItemSort > gridPosition) {
             if (sort <= targetItemSort && sort >= gridPosition) {
               return {
                 ...item,
-                sort: sort + 1
-              }
+                sort: sort + 1,
+              };
             }
           }
 
@@ -315,15 +317,15 @@ export default {
             if (sort >= targetItemSort && sort <= gridPosition) {
               return {
                 ...item,
-                sort: sort - 1
-              }
+                sort: sort - 1,
+              };
             }
           }
 
-          return item
-        })
+          return item;
+        });
 
-        this.$emit('sort', this.wrapEvent())
+        this.$emit('sort', this.wrapEvent());
       }
     },
     startScroll () {

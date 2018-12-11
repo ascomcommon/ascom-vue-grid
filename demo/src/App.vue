@@ -17,11 +17,11 @@
 
         <div class="grid">
           <grid
-            :center="false"
             :draggable="true"
             :sortable="true"
             :items="colors"
-            :cell-width="300"
+            :columns="columnCount"
+            :cell-width="400"
             :cell-height="200"
             :scroll-zona="0.3"
             :scroll-step="10"
@@ -67,6 +67,7 @@ export default {
       expandColor: { r: 200, g: 50, b: 50 },
       wrapperStyles: {  },
       scrollElement: null,
+      columnCount: 3,
     };
   },
 
