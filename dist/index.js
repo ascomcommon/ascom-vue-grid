@@ -137,7 +137,7 @@
         }
         var hasDocument = "undefined" != typeof document;
         if ("undefined" != typeof DEBUG && DEBUG && !hasDocument) throw new Error("vue-style-loader cannot be used in a non-browser environment. Use { target: 'node' } in your Webpack config to indicate a server-rendering environment.");
-        var listToStyles = __webpack_require__(15), stylesInDom = {}, head = hasDocument && (document.head || document.getElementsByTagName("head")[0]), singletonElement = null, singletonCounter = 0, isProduction = !1, noop = function() {}, isOldIE = "undefined" != typeof navigator && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase());
+        var listToStyles = __webpack_require__(16), stylesInDom = {}, head = hasDocument && (document.head || document.getElementsByTagName("head")[0]), singletonElement = null, singletonCounter = 0, isProduction = !1, noop = function() {}, isOldIE = "undefined" != typeof navigator && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase());
         module.exports = function(parentId, list, _isProduction) {
             isProduction = _isProduction;
             var styles = listToStyles(parentId, list);
@@ -163,8 +163,8 @@
             };
         }();
     }, function(module, exports, __webpack_require__) {
-        __webpack_require__(13);
-        var Component = __webpack_require__(1)(__webpack_require__(4), __webpack_require__(11), null, null);
+        __webpack_require__(14);
+        var Component = __webpack_require__(1)(__webpack_require__(4), __webpack_require__(12), null, null);
         module.exports = Component.exports;
     }, function(module, exports, __webpack_require__) {
         "use strict";
@@ -182,7 +182,7 @@
                 for (var key in source) Object.prototype.hasOwnProperty.call(source, key) && (target[key] = source[key]);
             }
             return target;
-        }, _window_size = __webpack_require__(7), _window_size2 = _interopRequireDefault(_window_size), _GridItem = __webpack_require__(10), _GridItem2 = _interopRequireDefault(_GridItem);
+        }, _window_size = __webpack_require__(7), _window_size2 = _interopRequireDefault(_window_size), _GridItem = __webpack_require__(11), _GridItem2 = _interopRequireDefault(_GridItem), _elementResizeEvent = __webpack_require__(10), _elementResizeEvent2 = _interopRequireDefault(_elementResizeEvent);
         exports.default = {
             name: "Grid",
             mixins: [ _window_size2.default ],
@@ -267,13 +267,15 @@
                 window.addEventListener("resize", this.resizeGrid);
             },
             beforeDestroy: function() {
-                window.removeEventListener("resize", this.resizeGrid);
+                window.removeEventListener("resize", this.resizeGrid), (0, _elementResizeEvent.unbind)(this.scrollElement);
             },
             mounted: function() {
                 var _this = this;
                 this.refScrollElement ? (this.scrollElement = this.refScrollElement, this.$refs["grid-wrapper"].style.overflow = "visible") : (this.scrollElement = this.$refs["grid-wrapper"], 
                 this.scrollElement.style["overflow-y"] = "auto"), this.$nextTick(function() {
                     _this.itemsIsShown = !0;
+                }), (0, _elementResizeEvent2.default)(this.scrollElement, function() {
+                    _this.resizeGrid();
                 });
             },
             watch: {
@@ -607,9 +609,52 @@
         exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-wrapper {\n  height: 100%;\n  overflow-x: hidden;\n  overflow-y: auto;\n}\n@media print {\n.v-grid-wrapper {\n      height: auto !important;\n}\n}\n.v-grid {\n  display: block;\n  position: relative;\n  width: 100%;\n}\n@media print {\n.v-grid {\n      height: auto !important;\n}\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
         exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n@media print {\n.v-grid-item-wrapper {\n      position: static;\n      transform: translate3d(0px, 0px, 0px) !important;\n      width: auto !important;\n}\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: all 800ms ease;\n}\n", "" ]);
+    }, function(module, exports) {
+        function resizeListener(e) {
+            var win = e.target || e.srcElement;
+            win.__resizeRAF__ && cancelAnimationFrame(win.__resizeRAF__), win.__resizeRAF__ = requestAnimationFrame(function() {
+                var trigger = win.__resizeTrigger__, listeners = trigger && trigger.__resizeListeners__;
+                listeners && listeners.forEach(function(fn) {
+                    fn.call(trigger, e);
+                });
+            });
+        }
+        var exports = function(element, fn) {
+            function objectLoad() {
+                this.contentDocument.defaultView.__resizeTrigger__ = this.__resizeElement__, this.contentDocument.defaultView.addEventListener("resize", resizeListener);
+            }
+            var isIE, window = this, document = window.document, attachEvent = document.attachEvent;
+            if ("undefined" != typeof navigator && (isIE = navigator.userAgent.match(/Trident/) || navigator.userAgent.match(/Edge/)), 
+            !element.__resizeListeners__) if (element.__resizeListeners__ = [], attachEvent) element.__resizeTrigger__ = element, 
+            element.attachEvent("onresize", resizeListener); else {
+                "static" === getComputedStyle(element).position && (element.style.position = "relative");
+                var obj = element.__resizeTrigger__ = document.createElement("object");
+                obj.setAttribute("style", "position: absolute; top: 0; left: 0; height: 100%; width: 100%; pointer-events: none; z-index: -1; opacity: 0;"), 
+                obj.setAttribute("class", "resize-sensor"), obj.setAttribute("tabindex", "-1"), 
+                obj.__resizeElement__ = element, obj.onload = objectLoad, obj.type = "text/html", 
+                isIE && element.appendChild(obj), obj.data = "about:blank", isIE || element.appendChild(obj);
+            }
+            element.__resizeListeners__.push(fn);
+        };
+        module.exports = "undefined" == typeof window ? exports : exports.bind(window), 
+        module.exports.unbind = function(element, fn) {
+            var attachEvent = document.attachEvent, listeners = element.__resizeListeners__ || [];
+            if (fn) {
+                var index = listeners.indexOf(fn);
+                -1 !== index && listeners.splice(index, 1);
+            } else listeners = element.__resizeListeners__ = [];
+            if (!listeners.length) {
+                if (attachEvent) element.detachEvent("onresize", resizeListener); else if (element.__resizeTrigger__) {
+                    var contentDocument = element.__resizeTrigger__.contentDocument, defaultView = contentDocument && contentDocument.defaultView;
+                    defaultView && (defaultView.removeEventListener("resize", resizeListener), delete defaultView.__resizeTrigger__), 
+                    element.__resizeTrigger__ = !element.removeChild(element.__resizeTrigger__);
+                }
+                delete element.__resizeListeners__;
+            }
+        };
     }, function(module, exports, __webpack_require__) {
-        __webpack_require__(14);
-        var Component = __webpack_require__(1)(__webpack_require__(5), __webpack_require__(12), null, null);
+        __webpack_require__(15);
+        var Component = __webpack_require__(1)(__webpack_require__(5), __webpack_require__(13), null, null);
         module.exports = Component.exports;
     }, function(module, exports) {
         module.exports = {

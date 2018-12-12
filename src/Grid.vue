@@ -31,8 +31,11 @@
   </div>
 </template>
 <script>
-import windowSize from './mixins/window_size.js'
-import GridItem from './GridItem.vue'
+import windowSize from './mixins/window_size.js';
+import GridItem from './GridItem.vue';
+import elementResizeEvent, {
+  unbind as elementResizeEventUnbind,
+  } from 'element-resize-event';
 
 export default {
   name: 'Grid',
@@ -117,6 +120,7 @@ export default {
   },
   beforeDestroy () {
     window.removeEventListener('resize', this.resizeGrid);
+    elementResizeEventUnbind(this.scrollElement);
   },
   mounted () {
     if (this.refScrollElement) {
@@ -129,6 +133,10 @@ export default {
 
     this.$nextTick(() => {
       this.itemsIsShown = true;
+    });
+
+    elementResizeEvent(this.scrollElement, () => {
+        this.resizeGrid();
     });
   },
   watch: {
