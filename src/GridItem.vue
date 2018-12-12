@@ -26,7 +26,7 @@ export default {
     cellHeight: {
       type: Number
     },
-    rowCount: {
+    columnCount: {
       type: Number
     },
     rowShift: {
@@ -89,9 +89,9 @@ export default {
         'v-grid-item-wrapper',
         {
           'v-grid-item-animate': animate,
-          // 'v-grid-item-dragging': dragging
-        }
-      ]
+          'v-grid-item-dragging': dragging,
+        },
+      ];
     },
     style () {
       let { zIndex, cellWidth, cellHeight, top, left } = this
@@ -107,13 +107,13 @@ export default {
     left () {
       return this.dragging
         ? this.shiftX
-        : this.rowShift + (this.sort % this.rowCount) * this.cellWidth
+        : this.rowShift + (this.sort % this.columnCount) * this.cellWidth
     },
 
     top () {
       return this.dragging
         ? this.shiftY
-        : Math.floor(this.sort / this.rowCount) * this.cellHeight
+        : Math.floor(this.sort / this.columnCount) * this.cellHeight
     }
   },
   methods: {
@@ -155,10 +155,10 @@ export default {
       let gridX = Math.round(this.shiftX / this.cellWidth)
       let gridY = Math.round(this.shiftY / this.cellHeight)
 
-      gridX = Math.min(gridX, this.rowCount - 1)
+      gridX = Math.min(gridX, this.columnCount - 1)
       gridY = Math.max(gridY, 0)
 
-      let gridPosition = gridX + gridY * this.rowCount
+      let gridPosition = gridX + gridY * this.columnCount
 
       const $event = {
         event,
@@ -249,11 +249,11 @@ export default {
   }
   
   &.v-grid-item-animate {
-    transition: transform 800ms ease;
+    transition: all 800ms ease;
   }
 
   &.v-grid-item-dragging {
-  //  z-index: 9000 !important;
+    
   }
 }
 </style>
