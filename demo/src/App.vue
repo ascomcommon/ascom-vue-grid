@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div class="color-header">
-      <Icon :color="selected" style="width: auto;">
+      <Icon :color="selected" style="width: auto">
         ascom-vue-grid
       </Icon>
     </div>
@@ -17,17 +17,18 @@
 
         <div class="grid">
           <grid
-            :center="false"
             :draggable="true"
             :sortable="true"
             :items="colors"
-            :cellWidth="300"
-            :cellHeight="200"
+            :columns="columnCount"
+            :cell-width="400"
+            :cell-height="200"
             :scroll-zona="0.3"
             :scroll-step="10"
             :scroll-interval="10"
             :ref-scroll-element="scrollElement"
             :wrapper-styles="wrapperStyles"
+            @change-item-width="onChangeItemWidth"
             @alltransitionend="onTransitionEnd"
             @change="change"
             @remove="remove"
@@ -35,12 +36,14 @@
             @sort="sort"
           >
             <template slot="cell" scope="props">
-                  <Icon
-                    :color="props.item"
-                    :index="props.index"
-                    :with-button="true"
-                    @remove="props.remove()"
-                  />
+              <div class="icon-wrapper">
+                <Icon
+                  :color="props.item"
+                  :index="props.index"
+                  :with-button="true"
+                  @remove="props.remove()"
+                />
+              </div>
             </template>
           </grid>
         </div>
@@ -50,8 +53,8 @@
 </template>
 
 <script>
-import Icon from './Icon.vue'
-import { generateRGBColors } from './util'
+import Icon from './Icon.vue';
+import { generateRGBColors } from './util';
 
 export default {
   name: 'app',
@@ -67,6 +70,7 @@ export default {
       expandColor: { r: 200, g: 50, b: 50 },
       wrapperStyles: {  },
       scrollElement: null,
+      columnCount: 2,
     };
   },
 
@@ -76,8 +80,12 @@ export default {
 
   methods: {
     click ({ items, index }) {
-      let value = items.find(v => v.index === index)
-      this.selected = value.item
+      let value = items.find(v => v.index === index);
+      this.selected = value.item;
+    },
+
+    onChangeItemWidth (itemWidth) {
+      console.log('onChangeItemWidth', { itemWidth });
     },
 
     onTransitionEnd () {
@@ -100,6 +108,10 @@ export default {
 </script>
 
 <style lang="scss">
+* {
+  box-sizing: border-box;
+}
+
 html, body {
   background: #fafafa;
   padding: 0;
@@ -127,19 +139,25 @@ html, body {
 .expand-item {
   width: 100%;
   height: 300px;
+  padding: 10px;
 }
 
 .scroll-element {
   overflow: auto;
-  padding: 40px;
 }
 
 .scroll-element-child {
+  padding: 5px;
 }
 
 .grid {
   overflow: hidden;
   flex: 1;
+}
+
+.icon-wrapper {
+  height: 100%;
+  padding: 10px;
 }
 
 </style>

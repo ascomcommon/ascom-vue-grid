@@ -106,11 +106,11 @@ export default {
   }
 }
 
-.v-grid-item-dragging .icon {
-  animation-name: shake;
-  animation-duration: 0.07s;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
-}
+// .v-grid-item-dragging .icon {
+//   animation-name: shake;
+//   animation-duration: 0.07s;
+//   animation-iteration-count: infinite;
+//   animation-direction: alternate;
+// }
 
 </style>

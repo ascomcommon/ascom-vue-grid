@@ -1,7 +1,7 @@
 {
   "name": "ascom-vue-grid",
   "description": "Vue.js responsive grid plugin",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "author": "ascomcommon <common.ascom@gmail.com>",
   "private": false,
   "scripts": {
@@ -31,5 +31,8 @@
     "vue-template-compiler": "^2.0.0",
     "webpack": "^2.2.0",
     "webpack-dev-server": "^2.2.0"
+  },
+  "dependencies": {
+    "element-resize-event": "^3.0.3"
   }
 }

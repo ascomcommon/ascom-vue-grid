@@ -137,7 +137,7 @@
         }
         var hasDocument = "undefined" != typeof document;
         if ("undefined" != typeof DEBUG && DEBUG && !hasDocument) throw new Error("vue-style-loader cannot be used in a non-browser environment. Use { target: 'node' } in your Webpack config to indicate a server-rendering environment.");
-        var listToStyles = __webpack_require__(15), stylesInDom = {}, head = hasDocument && (document.head || document.getElementsByTagName("head")[0]), singletonElement = null, singletonCounter = 0, isProduction = !1, noop = function() {}, isOldIE = "undefined" != typeof navigator && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase());
+        var listToStyles = __webpack_require__(16), stylesInDom = {}, head = hasDocument && (document.head || document.getElementsByTagName("head")[0]), singletonElement = null, singletonCounter = 0, isProduction = !1, noop = function() {}, isOldIE = "undefined" != typeof navigator && /msie [6-9]\b/.test(navigator.userAgent.toLowerCase());
         module.exports = function(parentId, list, _isProduction) {
             isProduction = _isProduction;
             var styles = listToStyles(parentId, list);
@@ -163,8 +163,8 @@
             };
         }();
     }, function(module, exports, __webpack_require__) {
-        __webpack_require__(13);
-        var Component = __webpack_require__(1)(__webpack_require__(4), __webpack_require__(11), null, null);
+        __webpack_require__(14);
+        var Component = __webpack_require__(1)(__webpack_require__(4), __webpack_require__(12), null, null);
         module.exports = Component.exports;
     }, function(module, exports, __webpack_require__) {
         "use strict";
@@ -182,7 +182,7 @@
                 for (var key in source) Object.prototype.hasOwnProperty.call(source, key) && (target[key] = source[key]);
             }
             return target;
-        }, _window_size = __webpack_require__(7), _window_size2 = _interopRequireDefault(_window_size), _GridItem = __webpack_require__(10), _GridItem2 = _interopRequireDefault(_GridItem);
+        }, _window_size = __webpack_require__(7), _window_size2 = _interopRequireDefault(_window_size), _GridItem = __webpack_require__(11), _GridItem2 = _interopRequireDefault(_GridItem), _elementResizeEvent = __webpack_require__(10), _elementResizeEvent2 = _interopRequireDefault(_elementResizeEvent);
         exports.default = {
             name: "Grid",
             mixins: [ _window_size2.default ],
@@ -203,6 +203,10 @@
                 cellHeight: {
                     type: Number,
                     default: 80
+                },
+                numberOfColumns: {
+                    type: Number,
+                    default: 0
                 },
                 draggable: {
                     type: Boolean,
@@ -238,6 +242,10 @@
                     default: function() {
                         return {};
                     }
+                },
+                columns: {
+                    type: Number,
+                    default: 0
                 }
             },
             data: function() {
@@ -246,20 +254,29 @@
                     scrollActive: !1,
                     scrollToDown: !0,
                     scrollOffset: 0,
-                    gridWrapperHeight: null,
+                    gridSize: {
+                        width: 0,
+                        height: 0
+                    },
                     currentScroll: 0,
-                    elementIdInMotion: null
+                    elementIdInMotion: null,
+                    itemsIsShown: !1
                 };
             },
             created: function() {
-                window.addEventListener("resize", this.resizeGridHeight);
+                window.addEventListener("resize", this.resizeGrid);
             },
             beforeDestroy: function() {
-                window.removeEventListener("resize", this.resizeGridHeight);
+                window.removeEventListener("resize", this.resizeGrid), (0, _elementResizeEvent.unbind)(this.scrollElement);
             },
             mounted: function() {
+                var _this = this;
                 this.refScrollElement ? (this.scrollElement = this.refScrollElement, this.$refs["grid-wrapper"].style.overflow = "visible") : (this.scrollElement = this.$refs["grid-wrapper"], 
-                this.scrollElement.style["overflow-y"] = "auto"), this.resizeGridHeight();
+                this.scrollElement.style["overflow-y"] = "auto"), this.$nextTick(function() {
+                    _this.itemsIsShown = !0;
+                }), (0, _elementResizeEvent2.default)(this.scrollElement, function() {
+                    _this.resizeGrid();
+                });
             },
             watch: {
                 refScrollElement: function(val) {
@@ -268,7 +285,7 @@
                 },
                 items: {
                     handler: function() {
-                        var _this = this, nextItems = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
+                        var _this2 = this, nextItems = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : [];
                         this.list = nextItems.map(function(item, index) {
                             return {
                                 item: item,
@@ -277,18 +294,24 @@
                                 sort: index
                             };
                         }), this.$nextTick(function() {
-                            _this.resizeGridHeight();
+                            _this2.resizeGrid();
                         });
                     },
                     immediate: !0
                 },
                 scrollActive: function(val) {
                     val && this.startScroll();
+                },
+                columns: function() {
+                    var _this3 = this;
+                    this.$nextTick(function() {
+                        _this3.resizeGrid();
+                    });
                 }
             },
             computed: {
                 height: function() {
-                    return Math.ceil(this.items.length / this.rowCount) * this.cellHeight;
+                    return Math.ceil(this.items.length / this.columnCount) * this.cellHeight;
                 },
                 style: function() {
                     return {
@@ -296,19 +319,19 @@
                     };
                 },
                 gridWrapperStyle: function() {
-                    return Number.isInteger(this.gridWrapperHeight) ? _extends({}, this.wrapperStyles, {
-                        height: this.gridWrapperHeight + "px"
+                    return this.gridSize.height > 0 ? _extends({}, this.wrapperStyles, {
+                        height: this.gridSize.height + "px"
                     }) : this.wrapperStyles;
                 },
-                rowCount: function() {
-                    return Math.floor(this.windowWidth / this.cellWidth);
+                columnCount: function() {
+                    return this.columns > 0 ? this.columns : Math.floor(this.windowWidth / this.cellWidth);
                 },
-                rowShift: function() {
-                    if (this.center) {
-                        var contentWidth = this.items.length * this.cellWidth, rowShift = contentWidth < this.windowWidth ? (this.windowWidth - contentWidth) / 2 : this.windowWidth % this.cellWidth / 2;
-                        return Math.floor(rowShift);
-                    }
-                    return 0;
+                itemWidth: function() {
+                    var itemWidth = this.columns > 0 && this.gridSize.width > 0 ? this.gridSize.width / this.columns : this.cellWidth;
+                    return this.$emit("change-item-width", itemWidth), itemWidth;
+                },
+                itemHeight: function() {
+                    return this.cellHeight;
                 }
             },
             methods: {
@@ -352,12 +375,13 @@
                     this.$emit("click", this.wrapEvent(event));
                 },
                 onDrag: function(event) {
-                    if (this.sortable && this.sortList(event.index, event.gridPosition), !this.scrollElement) return !1;
-                    var pageY = event.event.pageY, mousePosition = pageY - this.scrollElement.offsetTop, coef = mousePosition / this.scrollElement.clientHeight;
-                    this.scrollActive = coef < this.scrollZona || 1 - this.scrollZona < coef, this.scrollToDown = coef > 1 - this.scrollZona, 
-                    this.$emit("drag", this.wrapEvent({
-                        event: event
-                    }));
+                    if (this.sortable && this.sortList(event.index, event.gridPosition), this.scrollElement) {
+                        var pageY = event.event.pageY, mousePosition = pageY - this.scrollElement.offsetTop, coef = mousePosition / this.scrollElement.clientHeight;
+                        this.scrollActive = coef < this.scrollZona || 1 - this.scrollZona < coef, this.scrollToDown = coef > 1 - this.scrollZona, 
+                        this.$emit("drag", this.wrapEvent({
+                            event: event
+                        }));
+                    }
                 },
                 sortList: function(itemIndex, gridPosition) {
                     var targetItem = this.list.find(function(item) {
@@ -377,7 +401,7 @@
                     }), this.$emit("sort", this.wrapEvent()));
                 },
                 startScroll: function() {
-                    var _this2 = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
+                    var _this4 = this, offsetY = this.scrollToDown ? this.scrollStep : -this.scrollStep;
                     if (this.scrollElement) {
                         var lastScrollTop = this.scrollElement.scrollTop;
                         this.scrollElement.scrollBy ? this.scrollElement.scrollBy(0, offsetY) : this.scrollElement.scrollTop = lastScrollTop + offsetY;
@@ -385,15 +409,15 @@
                         if (scrollToUp && offsetY < 0 || scrollToDown && offsetY > 0) {
                             var newScrollOffset = this.scrollOffset + offsetY;
                             this.scrollOffset = newScrollOffset, setTimeout(function() {
-                                _this2.scrollActive && _this2.startScroll();
+                                _this4.scrollActive && _this4.startScroll();
                             }, this.scrollInterval);
                         }
                     }
                 },
-                resizeGridHeight: function() {
+                resizeGrid: function() {
                     if (this.$refs.hasOwnProperty("grid-wrapper")) {
                         var gridWrapper = this.$refs["grid-wrapper"];
-                        this.gridWrapperHeight = gridWrapper.firstChild.clientHeight;
+                        this.gridSize.width = gridWrapper.firstChild.clientWidth, this.gridSize.height = gridWrapper.firstChild.clientHeight;
                     }
                 }
             }
@@ -418,7 +442,7 @@
                 cellHeight: {
                     type: Number
                 },
-                rowCount: {
+                columnCount: {
                     type: Number
                 },
                 rowShift: {
@@ -465,10 +489,9 @@
             },
             computed: {
                 className: function() {
-                    var animate = this.animate;
-                    this.dragging;
                     return [ "v-grid-item-wrapper", {
-                        "v-grid-item-animate": animate
+                        "v-grid-item-animate": this.animate,
+                        "v-grid-item-dragging": this.dragging
                     } ];
                 },
                 style: function() {
@@ -481,10 +504,10 @@
                     };
                 },
                 left: function() {
-                    return this.dragging ? this.shiftX : this.rowShift + this.sort % this.rowCount * this.cellWidth;
+                    return this.dragging ? this.shiftX : this.rowShift + this.sort % this.columnCount * this.cellWidth;
                 },
                 top: function() {
-                    return this.dragging ? this.shiftY : Math.floor(this.sort / this.rowCount) * this.cellHeight;
+                    return this.dragging ? this.shiftY : Math.floor(this.sort / this.columnCount) * this.cellHeight;
                 }
             },
             methods: {
@@ -508,8 +531,8 @@
                     var distanceX = e.pageX - this.mouseMoveStartX, distanceY = e.pageY - this.mouseMoveStartY;
                     this.shiftX = distanceX + this.shiftStartX, this.shiftY = distanceY + this.shiftStartY + this.scrollOffset;
                     var gridX = Math.round(this.shiftX / this.cellWidth), gridY = Math.round(this.shiftY / this.cellHeight);
-                    gridX = Math.min(gridX, this.rowCount - 1), gridY = Math.max(gridY, 0);
-                    var gridPosition = gridX + gridY * this.rowCount, $event = {
+                    gridX = Math.min(gridX, this.columnCount - 1), gridY = Math.max(gridY, 0);
+                    var gridPosition = gridX + gridY * this.columnCount, $event = {
                         event: event,
                         distanceX: distanceX,
                         distanceY: distanceY,
@@ -585,10 +608,53 @@
     }, function(module, exports, __webpack_require__) {
         exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-wrapper {\n  height: 100%;\n  overflow-x: hidden;\n  overflow-y: auto;\n}\n@media print {\n.v-grid-wrapper {\n      height: auto !important;\n}\n}\n.v-grid {\n  display: block;\n  position: relative;\n  width: 100%;\n}\n@media print {\n.v-grid {\n      height: auto !important;\n}\n}\n", "" ]);
     }, function(module, exports, __webpack_require__) {
-        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n@media print {\n.v-grid-item-wrapper {\n      position: static;\n      transform: translate3d(0px, 0px, 0px) !important;\n      width: auto !important;\n}\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: transform 800ms ease;\n}\n", "" ]);
+        exports = module.exports = __webpack_require__(0)(), exports.push([ module.i, "\n.v-grid-item-wrapper {\n  display: block;\n  position: absolute;\n  box-sizing: border-box;\n  left: 0;\n  top: 0;\n  user-select: none;\n  transform: translate3d(0px, 0px, 0px);\n  z-index: 1;\n}\n@media print {\n.v-grid-item-wrapper {\n      position: static;\n      transform: translate3d(0px, 0px, 0px) !important;\n      width: auto !important;\n}\n}\n.v-grid-item-wrapper.v-grid-item-animate {\n    transition: all 800ms ease;\n}\n", "" ]);
+    }, function(module, exports) {
+        function resizeListener(e) {
+            var win = e.target || e.srcElement;
+            win.__resizeRAF__ && cancelAnimationFrame(win.__resizeRAF__), win.__resizeRAF__ = requestAnimationFrame(function() {
+                var trigger = win.__resizeTrigger__, listeners = trigger && trigger.__resizeListeners__;
+                listeners && listeners.forEach(function(fn) {
+                    fn.call(trigger, e);
+                });
+            });
+        }
+        var exports = function(element, fn) {
+            function objectLoad() {
+                this.contentDocument.defaultView.__resizeTrigger__ = this.__resizeElement__, this.contentDocument.defaultView.addEventListener("resize", resizeListener);
+            }
+            var isIE, window = this, document = window.document, attachEvent = document.attachEvent;
+            if ("undefined" != typeof navigator && (isIE = navigator.userAgent.match(/Trident/) || navigator.userAgent.match(/Edge/)), 
+            !element.__resizeListeners__) if (element.__resizeListeners__ = [], attachEvent) element.__resizeTrigger__ = element, 
+            element.attachEvent("onresize", resizeListener); else {
+                "static" === getComputedStyle(element).position && (element.style.position = "relative");
+                var obj = element.__resizeTrigger__ = document.createElement("object");
+                obj.setAttribute("style", "position: absolute; top: 0; left: 0; height: 100%; width: 100%; pointer-events: none; z-index: -1; opacity: 0;"), 
+                obj.setAttribute("class", "resize-sensor"), obj.setAttribute("tabindex", "-1"), 
+                obj.__resizeElement__ = element, obj.onload = objectLoad, obj.type = "text/html", 
+                isIE && element.appendChild(obj), obj.data = "about:blank", isIE || element.appendChild(obj);
+            }
+            element.__resizeListeners__.push(fn);
+        };
+        module.exports = "undefined" == typeof window ? exports : exports.bind(window), 
+        module.exports.unbind = function(element, fn) {
+            var attachEvent = document.attachEvent, listeners = element.__resizeListeners__ || [];
+            if (fn) {
+                var index = listeners.indexOf(fn);
+                -1 !== index && listeners.splice(index, 1);
+            } else listeners = element.__resizeListeners__ = [];
+            if (!listeners.length) {
+                if (attachEvent) element.detachEvent("onresize", resizeListener); else if (element.__resizeTrigger__) {
+                    var contentDocument = element.__resizeTrigger__.contentDocument, defaultView = contentDocument && contentDocument.defaultView;
+                    defaultView && (defaultView.removeEventListener("resize", resizeListener), delete defaultView.__resizeTrigger__), 
+                    element.__resizeTrigger__ = !element.removeChild(element.__resizeTrigger__);
+                }
+                delete element.__resizeListeners__;
+            }
+        };
     }, function(module, exports, __webpack_require__) {
-        __webpack_require__(14);
-        var Component = __webpack_require__(1)(__webpack_require__(5), __webpack_require__(12), null, null);
+        __webpack_require__(15);
+        var Component = __webpack_require__(1)(__webpack_require__(5), __webpack_require__(13), null, null);
         module.exports = Component.exports;
     }, function(module, exports) {
         module.exports = {
@@ -603,18 +669,16 @@
                     staticClass: "v-grid",
                     style: _vm.style
                 }, _vm._l(_vm.list, function(v) {
-                    return _c("GridItem", {
+                    return _vm.itemsIsShown ? _c("GridItem", {
                         key: v.key,
                         attrs: {
                             index: v.index,
                             sort: v.sort,
                             draggable: _vm.draggable,
                             "drag-delay": _vm.dragDelay,
-                            "row-count": _vm.rowCount,
-                            "cell-width": _vm.cellWidth,
-                            "cell-height": _vm.cellHeight,
-                            "window-width": _vm.windowWidth,
-                            "row-shift": _vm.rowShift,
+                            "column-count": _vm.columnCount,
+                            "cell-width": _vm.itemWidth,
+                            "cell-height": _vm.itemHeight,
                             "scroll-offset": _vm.scrollOffset
                         },
                         on: {
@@ -635,7 +699,7 @@
                         remove: function() {
                             _vm.removeItem(v);
                         }
-                    }) ], 2);
+                    }) ], 2) : _vm._e();
                 })) ]);
             },
             staticRenderFns: []
