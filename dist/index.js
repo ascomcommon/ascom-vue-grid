@@ -246,6 +246,10 @@
                 columns: {
                     type: Number,
                     default: 0
+                },
+                animatable: {
+                    type: Boolean,
+                    default: !0
                 }
             },
             data: function() {
@@ -436,6 +440,10 @@
                 sort: {
                     type: Number
                 },
+                animatable: {
+                    type: Boolean,
+                    default: !0
+                },
                 cellWidth: {
                     type: Number
                 },
@@ -489,9 +497,10 @@
             },
             computed: {
                 className: function() {
+                    var animatable = this.animatable, animate = this.animate, dragging = this.dragging;
                     return [ "v-grid-item-wrapper", {
-                        "v-grid-item-animate": this.animate,
-                        "v-grid-item-dragging": this.dragging
+                        "v-grid-item-animate": animatable && animate,
+                        "v-grid-item-dragging": dragging
                     } ];
                 },
                 style: function() {
@@ -674,6 +683,7 @@
                         attrs: {
                             index: v.index,
                             sort: v.sort,
+                            animatable: _vm.animatable,
                             draggable: _vm.draggable,
                             "drag-delay": _vm.dragDelay,
                             "column-count": _vm.columnCount,

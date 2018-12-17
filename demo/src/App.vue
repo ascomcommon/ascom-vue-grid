@@ -19,6 +19,7 @@
           <grid
             :draggable="true"
             :sortable="true"
+            :animatable="true"
             :items="colors"
             :columns="columnCount"
             :cell-width="400"

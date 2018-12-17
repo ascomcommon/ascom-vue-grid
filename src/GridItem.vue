@@ -20,6 +20,10 @@ export default {
     sort: {
       type: Number
     },
+    animatable: {
+      type: Boolean,
+      default: true,
+    },
     cellWidth: {
       type: Number
     },
@@ -83,12 +87,16 @@ export default {
   },
   computed: {
     className () {
-      let { animate, dragging } = this
+      let {
+        animatable,
+        animate,
+        dragging,
+      } = this;
 
       return [
         'v-grid-item-wrapper',
         {
-          'v-grid-item-animate': animate,
+          'v-grid-item-animate': animatable && animate,
           'v-grid-item-dragging': dragging,
         },
       ];
