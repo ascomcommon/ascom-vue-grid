@@ -7,6 +7,7 @@
         :key="v.key"
         :index="v.index"
         :sort="v.sort"
+        :animatable="animatable"
         :draggable="draggable"
         :drag-delay="dragDelay"
         :column-count="columnCount"
@@ -98,6 +99,10 @@ export default {
     columns: {
       type: Number,
       default: 0,
+    },
+    animatable: {
+      type: Boolean,
+      default: true,
     },
   },
   data () {
